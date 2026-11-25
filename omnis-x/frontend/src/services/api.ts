@@ -92,6 +92,34 @@ export class DigitalTwinApi {
   }
 
   /**
+   * Emergency Demonstration Controls API
+   */
+  static async getDemoStatus(): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/demo/status`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      return null;
+    }
+  }
+
+  static async triggerDemoInterrupt(): Promise<any> {
+    const res = await fetch(`${API_BASE}/demo/interrupt`, { method: "POST", headers: DEFAULT_HEADERS });
+    return await res.json();
+  }
+
+  static async triggerDemoRecovery(): Promise<any> {
+    const res = await fetch(`${API_BASE}/demo/recovery`, { method: "POST", headers: DEFAULT_HEADERS });
+    return await res.json();
+  }
+
+  static async triggerDemoRestore(): Promise<any> {
+    const res = await fetch(`${API_BASE}/demo/restore`, { method: "POST", headers: DEFAULT_HEADERS });
+    return await res.json();
+  }
+
+  /**
    * Fetch upstream and downstream dependencies for an entity
    */
   static async getEntityDependencies(entityId: string): Promise<{

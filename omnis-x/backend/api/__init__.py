@@ -10,6 +10,7 @@ from backend.api.simulations import router as simulations_router
 from backend.api.analytics import router as analytics_router
 from backend.api.auth import router as auth_router
 from backend.api.ml import router as ml_router
+from backend.api.demo import router as demo_router
 
 api_router = APIRouter()
 
@@ -21,3 +22,4 @@ api_router.include_router(simulations_router)
 api_router.include_router(analytics_router)
 api_router.include_router(auth_router)
 api_router.include_router(ml_router)
+api_router.include_router(demo_router)

@@ -26,13 +26,28 @@ interface OperationalFlowGraphProps {
   onSelectEntity?: (entityId: string) => void;
   selectedEntityId?: string | null;
   incidentEntityId?: string | null;
+  demoState?: string;
+  telemetry?: any;
 }
 
 export function OperationalFlowGraph({
   onSelectEntity,
   selectedEntityId,
   incidentEntityId,
+  demoState = "NORMAL",
+  telemetry,
 }: OperationalFlowGraphProps) {
+  const isCut = demoState === "INTERRUPTED" || demoState === "RECOVERY_PLANNED" || Boolean(incidentEntityId);
+  const isRecovery = demoState === "RECOVERY_PLANNED";
+
+  // Dynamic live voltage and power values from backend generator
+  const liveVoltage = telemetry?.voltage_v ? `${telemetry.voltage_v.toFixed(1)} V` : "415.0 V";
+  const livePower = isCut
+    ? "0.0 kW (TRIPPED)"
+    : telemetry?.active_power_kw
+    ? `${telemetry.active_power_kw.toFixed(1)} kW`
+    : "142.5 kW";
+
   // Real registered institutional topology
   const nodes: FlowNode[] = [
     {
@@ -51,9 +66,9 @@ export function OperationalFlowGraph({
       type: "SUBSTATION",
       x: 70,
       y: 200,
-      status: incidentEntityId === "SUBSTATION-01" ? "CRITICAL" : "NORMAL",
-      metric: "Load Capacity",
-      value: "145 kW",
+      status: "NORMAL",
+      metric: "Main Bus Voltage",
+      value: liveVoltage,
     },
     {
       id: "ATS-01",
@@ -73,7 +88,7 @@ export function OperationalFlowGraph({
       y: 135,
       status: "NORMAL",
       metric: "Current Draw",
-      value: "320 A",
+      value: isCut ? "120 A (REDUCED)" : "320 A",
     },
     {
       id: "FEEDER-LABS-F1",
@@ -81,9 +96,9 @@ export function OperationalFlowGraph({
       type: "FEEDER",
       x: 600,
       y: 90,
-      status: incidentEntityId ? "CRITICAL" : "NORMAL",
+      status: isCut ? "CRITICAL" : "NORMAL",
       metric: "Line Status",
-      value: incidentEntityId ? "TRIPPED" : "ENERGIZED",
+      value: livePower,
     },
     {
       id: "SRV-01",
@@ -101,9 +116,9 @@ export function OperationalFlowGraph({
       type: "ROOM",
       x: 790,
       y: 60,
-      status: incidentEntityId ? "CRITICAL" : "NORMAL",
-      metric: "Occupancy / Class",
-      value: "42 students",
+      status: isCut ? "CRITICAL" : "NORMAL",
+      metric: "Class State",
+      value: isCut ? "DISRUPTED (EE-302)" : "42 students",
     },
     {
       id: "LAB-01-EE",
@@ -111,9 +126,9 @@ export function OperationalFlowGraph({
       type: "ROOM",
       x: 790,
       y: 140,
-      status: incidentEntityId ? "WARNING" : "NORMAL",
+      status: isCut ? "CRITICAL" : "NORMAL",
       metric: "Testbed Power",
-      value: incidentEntityId ? "AUXILIARY" : "38 kW",
+      value: isCut ? "POWER CUT (0 kW)" : "38 kW",
     },
     {
       id: "CR-201",
@@ -121,22 +136,24 @@ export function OperationalFlowGraph({
       type: "ROOM",
       x: 790,
       y: 220,
-      status: "NORMAL",
-      metric: "Available Roster",
-      value: "VACANT / FREE",
+      status: isRecovery ? "NORMAL" : "NORMAL",
+      metric: isRecovery ? "Relocation Target" : "Available Roster",
+      value: isRecovery ? "REALLOCATED (EE-302)" : "VACANT / FREE",
     },
   ];
 
   const edges: FlowEdge[] = [
     { from: "GEN-500KVA", to: "ATS-01", type: "ELECTRICAL", status: "ACTIVE" },
-    { from: "SUBSTATION-01", to: "ATS-01", type: "ELECTRICAL", status: incidentEntityId === "SUBSTATION-01" ? "SEVERED" : "ACTIVE" },
+    { from: "SUBSTATION-01", to: "ATS-01", type: "ELECTRICAL", status: "ACTIVE" },
     { from: "ATS-01", to: "PANEL-ENG-MAIN", type: "ELECTRICAL", status: "ACTIVE" },
-    { from: "PANEL-ENG-MAIN", to: "FEEDER-LABS-F1", type: "ELECTRICAL", status: incidentEntityId ? "SEVERED" : "ACTIVE" },
+    { from: "PANEL-ENG-MAIN", to: "FEEDER-LABS-F1", type: "ELECTRICAL", status: isCut ? "SEVERED" : "ACTIVE" },
     { from: "PANEL-ENG-MAIN", to: "SRV-01", type: "ELECTRICAL", status: "ACTIVE" },
-    { from: "FEEDER-LABS-F1", to: "CR-101", type: "ELECTRICAL", status: incidentEntityId ? "SEVERED" : "ACTIVE" },
-    { from: "FEEDER-LABS-F1", to: "LAB-01-EE", type: "ELECTRICAL", status: incidentEntityId ? "DEGRADED" : "ACTIVE" },
+    { from: "FEEDER-LABS-F1", to: "CR-101", type: "ELECTRICAL", status: isCut ? "SEVERED" : "ACTIVE" },
+    { from: "FEEDER-LABS-F1", to: "LAB-01-EE", type: "ELECTRICAL", status: isCut ? "SEVERED" : "ACTIVE" },
     { from: "SRV-01", to: "CR-101", type: "NETWORK", status: "ACTIVE" },
     { from: "SRV-01", to: "LAB-01-EE", type: "NETWORK", status: "ACTIVE" },
+    // If recovery planned, highlight alternative line to CR-201
+    { from: "PANEL-ENG-MAIN", to: "CR-201", type: "ELECTRICAL", status: isRecovery ? "ACTIVE" : "DEGRADED" },
   ];
 
   const getNode = (id: string) => nodes.find((n) => n.id === id);
