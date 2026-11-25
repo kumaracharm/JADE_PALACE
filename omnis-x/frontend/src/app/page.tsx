@@ -11,6 +11,7 @@ import { CinematicIntro } from "@/components/cinematic/CinematicIntro";
 import { CommandWorkspace } from "@/components/command/CommandWorkspace";
 import { ResponseWorkspace } from "@/components/response/ResponseWorkspace";
 import { ReportIncidentModal } from "@/components/reporting/ReportIncidentModal";
+import { KungFuPandaProfile, KUNG_FU_PANDA_PERSONAS, PersonaProfile } from "@/components/profile/KungFuPandaProfile";
 import {
   CampusEntity,
   EntityRelationship,
@@ -20,11 +21,30 @@ import { CAMPUS_FLOORS } from "@/data/spatial-campus";
 import { DigitalTwinApi } from "@/services/api";
 
 export default function DigitalTwinExplorerPage() {
-  // Cinematic Intro Screen State
-  const [showIntro, setShowIntro] = useState<boolean>(true);
+  // Cinematic Intro Screen State (off by default for immediate workspace access, replayable via TopNav)
+  const [showIntro, setShowIntro] = useState<boolean>(false);
+
+  // Kung Fu Panda Themed RBAC & Persona Profile
+  const [currentPersona, setCurrentPersona] = useState<PersonaProfile>(KUNG_FU_PANDA_PERSONAS[0]);
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
 
   // Three-Dashboard Shared-State Workspace Ecosystem
-  const [activeWorkspace, setActiveWorkspace] = useState<"COMMAND" | "TWIN" | "RESPONSE">("TWIN");
+  const [activeWorkspace, setActiveWorkspace] = useState<"COMMAND" | "TWIN" | "RESPONSE">("COMMAND");
+
+  // Auto-detect entry port for multi-port deployment (3000 -> Command, 3001 -> Twin, 3002 -> Response)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const port = window.location.port;
+      if (port === "3001") setActiveWorkspace("TWIN");
+      else if (port === "3002") setActiveWorkspace("RESPONSE");
+      else if (port === "3000") setActiveWorkspace("COMMAND");
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("intro") === "1" || params.get("intro") === "true") {
+        setShowIntro(true);
+      }
+    }
+  }, []);
 
   // Navigation & Floor State
   const [currentFloor, setCurrentFloor] = useState<string>("FLOOR-1");
@@ -183,6 +203,8 @@ export default function DigitalTwinExplorerPage() {
         activeWorkspace={activeWorkspace}
         onSelectWorkspace={setActiveWorkspace}
         onOpenReportModal={() => setIsReportModalOpen(true)}
+        onOpenProfile={() => setIsProfileOpen(true)}
+        currentPersona={currentPersona}
         onReplayIntro={() => setShowIntro(true)}
       />
 
@@ -267,6 +289,14 @@ export default function DigitalTwinExplorerPage() {
         onIncidentReported={(inc) => {
           setTargetIncidentId(inc.incident_id);
         }}
+      />
+
+      {/* 5. KUNG FU PANDA PERSONA & RBAC PROFILE MODAL */}
+      <KungFuPandaProfile
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        currentPersona={currentPersona}
+        onSelectPersona={setCurrentPersona}
       />
     </div>
   );

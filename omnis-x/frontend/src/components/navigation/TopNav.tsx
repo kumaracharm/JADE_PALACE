@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { CampusEntity } from "@/types/digital-twin";
 
+import { PersonaProfile, KUNG_FU_PANDA_PERSONAS } from "@/components/profile/KungFuPandaProfile";
+
 interface TopNavProps {
   currentFloor: string;
   onSelectFloor: (floorId: string) => void;
@@ -23,6 +25,8 @@ interface TopNavProps {
   activeWorkspace: "COMMAND" | "TWIN" | "RESPONSE";
   onSelectWorkspace: (ws: "COMMAND" | "TWIN" | "RESPONSE") => void;
   onOpenReportModal: () => void;
+  onOpenProfile?: () => void;
+  currentPersona?: PersonaProfile;
   onReplayIntro?: () => void;
 }
 
@@ -36,6 +40,8 @@ export function TopNav({
   activeWorkspace,
   onSelectWorkspace,
   onOpenReportModal,
+  onOpenProfile,
+  currentPersona = KUNG_FU_PANDA_PERSONAS[0],
   onReplayIntro,
 }: TopNavProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -232,16 +238,26 @@ export function TopNav({
           <span className="text-[10px] font-mono font-bold text-[#E6C45E]">LIVE</span>
         </div>
 
-        {/* Operator Profile */}
-        <div className="flex items-center space-x-2 pl-2 border-l border-[#252833] flex-shrink-0">
-          <div className="w-7 h-7 rounded-full bg-[#272433] border border-[#484257] flex items-center justify-center text-[#D4AF37] flex-shrink-0">
-            <User className="w-3.5 h-3.5" />
+        {/* Kung Fu Panda Themed Operator Profile & Role Switcher */}
+        <button
+          onClick={onOpenProfile}
+          className="flex items-center space-x-2 pl-2 border-l border-[#252833] flex-shrink-0 hover:opacity-90 transition-opacity cursor-pointer text-left"
+          title="Switch Institutional Persona / View RBAC Scope"
+        >
+          <div
+            className={`w-7 h-7 rounded-full bg-gradient-to-br ${currentPersona.avatarGradient} border border-[#D4AF37]/50 flex items-center justify-center text-white text-[10px] font-bold shadow flex-shrink-0`}
+          >
+            {currentPersona.initials}
           </div>
           <div className="hidden xl:block text-left flex-shrink-0">
-            <div className="text-[11px] font-medium text-[#E2E1E6]">Campus Director</div>
-            <div className="text-[9px] text-[#9D8EB5] font-mono">Resilience Level 4</div>
+            <div className="text-[11px] font-bold text-[#E2E1E6] truncate max-w-[110px]">
+              {currentPersona.characterName}
+            </div>
+            <div className="text-[9px] text-[#F5D061] font-mono uppercase truncate max-w-[110px]">
+              {currentPersona.role}
+            </div>
           </div>
-        </div>
+        </button>
       </div>
     </header>
   );

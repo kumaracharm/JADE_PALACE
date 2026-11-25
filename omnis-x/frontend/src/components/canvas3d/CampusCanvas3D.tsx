@@ -385,146 +385,484 @@ export function CampusCanvas3D({
     }
 
     function addRoomFurniture(parent: THREE.Group, roomId: string) {
-      if (roomId === "SUB-01") {
-        // Two 750kVA Transformers with Bushings and Cooling Fins (Selectable)
+      if (roomId.startsWith("CR-")) {
+        // --- CLASSROOMS CR-101 to CR-104 ---
+        // Instructor Smart Podium at front
         addSelectableItem(
           parent,
+          `${roomId}-PODIUM`,
+          "Instructor Multimedia Podium",
+          "PODIUM",
+          roomId,
+          new THREE.BoxGeometry(1.8, 1.0, 0.8),
+          [0, -0.9, -2.4],
+          0xd4af37
+        );
+        // Smartboard / Blackboard on wall
+        addSelectableItem(
+          parent,
+          `${roomId}-SMARTBOARD`,
+          "85-inch UHD Interactive Smartboard",
+          "SMARTBOARD",
+          roomId,
+          new THREE.BoxGeometry(4.5, 1.6, 0.08),
+          [0, 0.2, -3.45],
+          0xf5d061
+        );
+        // Ceiling Projector Unit
+        addSelectableItem(
+          parent,
+          `${roomId}-PROJECTOR`,
+          "Ceiling 4K Laser Projector Unit",
+          "PROJECTOR",
+          roomId,
+          new THREE.BoxGeometry(0.6, 0.25, 0.6),
+          [0, 1.3, -0.5],
+          0x9d8eb5
+        );
+
+        // 3 rows x 3 columns of Student Desks with Table Legs & Dual Chairs
+        const rows = [-1.8, 0.2, 2.2];
+        const cols = [-2.8, 0, 2.8];
+        const isComputerLab = roomId === "CR-103" || roomId === "CR-104";
+
+        let deskCount = 1;
+        rows.forEach((z) => {
+          cols.forEach((x) => {
+            const deskGroup = new THREE.Group();
+            deskGroup.position.set(x, -0.9, z);
+            parent.add(deskGroup);
+
+            // Tabletop
+            addSelectableItem(
+              deskGroup,
+              `${roomId}-DESK-0${deskCount}`,
+              `Student Study Bench 0${deskCount}`,
+              "FURNITURE",
+              roomId,
+              new THREE.BoxGeometry(1.8, 0.08, 0.7),
+              [0, 0.35, 0],
+              0x9d8eb5
+            );
+
+            // Table legs
+            const legLeft = new THREE.LineSegments(
+              new THREE.EdgesGeometry(new THREE.BoxGeometry(0.08, 0.7, 0.6)),
+              new THREE.LineBasicMaterial({ color: 0x5a5565, transparent: true, opacity: 0.4 })
+            );
+            legLeft.position.set(-0.8, -0.05, 0);
+            deskGroup.add(legLeft);
+
+            const legRight = new THREE.LineSegments(
+              new THREE.EdgesGeometry(new THREE.BoxGeometry(0.08, 0.7, 0.6)),
+              new THREE.LineBasicMaterial({ color: 0x5a5565, transparent: true, opacity: 0.4 })
+            );
+            legRight.position.set(0.8, -0.05, 0);
+            deskGroup.add(legRight);
+
+            // Dual Chairs per desk
+            const chairLeft = new THREE.LineSegments(
+              new THREE.EdgesGeometry(new THREE.BoxGeometry(0.45, 0.6, 0.45)),
+              new THREE.LineBasicMaterial({ color: 0x9d8eb5, transparent: true, opacity: 0.35 })
+            );
+            chairLeft.position.set(-0.45, -0.05, 0.55);
+            deskGroup.add(chairLeft);
+
+            const chairRight = new THREE.LineSegments(
+              new THREE.EdgesGeometry(new THREE.BoxGeometry(0.45, 0.6, 0.45)),
+              new THREE.LineBasicMaterial({ color: 0x9d8eb5, transparent: true, opacity: 0.35 })
+            );
+            chairRight.position.set(0.45, -0.05, 0.55);
+            deskGroup.add(chairRight);
+
+            // Computer monitors for computer labs
+            if (isComputerLab) {
+              const mon1 = new THREE.LineSegments(
+                new THREE.EdgesGeometry(new THREE.BoxGeometry(0.55, 0.35, 0.06)),
+                new THREE.LineBasicMaterial({ color: 0xd4af37, transparent: true, opacity: 0.5 })
+              );
+              mon1.position.set(-0.45, 0.65, 0.05);
+              deskGroup.add(mon1);
+
+              const mon2 = new THREE.LineSegments(
+                new THREE.EdgesGeometry(new THREE.BoxGeometry(0.55, 0.35, 0.06)),
+                new THREE.LineBasicMaterial({ color: 0xd4af37, transparent: true, opacity: 0.5 })
+              );
+              mon2.position.set(0.45, 0.65, 0.05);
+              deskGroup.add(mon2);
+            }
+
+            deskCount++;
+          });
+        });
+      } else if (roomId === "SUB-01") {
+        // --- SUBSTATION (Transformers with Bushings & Cooling Radiator Fins) ---
+        // Transformer T1 (750kVA)
+        const t1Group = new THREE.Group();
+        t1Group.position.set(-2.8, -0.5, 0);
+        parent.add(t1Group);
+        addSelectableItem(
+          t1Group,
           "SUB-01-TX-01",
           "750kVA Primary Substation Transformer 1",
           "TRANSFORMER",
           roomId,
-          new THREE.BoxGeometry(2.4, 2.0, 2.0),
-          [-2.8, -0.5, 0],
+          new THREE.BoxGeometry(2.8, 2.2, 2.2),
+          [0, 0, 0],
           0xd4af37
         );
+        // Bushings
+        [-0.7, 0, 0.7].forEach((bx) => {
+          const b = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.BoxGeometry(0.2, 0.7, 0.2)),
+            new THREE.LineBasicMaterial({ color: 0xf5d061, transparent: true, opacity: 0.6 })
+          );
+          b.position.set(bx, 1.4, 0);
+          t1Group.add(b);
+        });
+        // Radiator Fins
+        const fin1 = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(0.4, 1.8, 1.8)),
+          new THREE.LineBasicMaterial({ color: 0x9d8eb5, transparent: true, opacity: 0.5 })
+        );
+        fin1.position.set(1.6, 0, 0);
+        t1Group.add(fin1);
+
+        // Transformer T2 (750kVA)
+        const t2Group = new THREE.Group();
+        t2Group.position.set(2.8, -0.5, 0);
+        parent.add(t2Group);
         addSelectableItem(
-          parent,
+          t2Group,
           "SUB-01-TX-02",
           "750kVA Standby Substation Transformer 2",
           "TRANSFORMER",
           roomId,
-          new THREE.BoxGeometry(2.4, 2.0, 2.0),
-          [2.8, -0.5, 0],
+          new THREE.BoxGeometry(2.8, 2.2, 2.2),
+          [0, 0, 0],
           0xd4af37
         );
-        // 11kV Switchgear Panels
+        [-0.7, 0, 0.7].forEach((bx) => {
+          const b = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.BoxGeometry(0.2, 0.7, 0.2)),
+            new THREE.LineBasicMaterial({ color: 0xf5d061, transparent: true, opacity: 0.6 })
+          );
+          b.position.set(bx, 1.4, 0);
+          t2Group.add(b);
+        });
+        const fin2 = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(0.4, 1.8, 1.8)),
+          new THREE.LineBasicMaterial({ color: 0x9d8eb5, transparent: true, opacity: 0.5 })
+        );
+        fin2.position.set(-1.6, 0, 0);
+        t2Group.add(fin2);
+
+        // 11kV Switchgear & Breaker Cabinets
         addSelectableItem(
           parent,
           "SUB-01-SWG-01",
           "11kV Vacuum Circuit Breaker Switchgear",
           "DISTRIBUTION_PANEL",
           roomId,
-          new THREE.BoxGeometry(7.2, 2.2, 0.9),
-          [0, -0.4, -2.5],
+          new THREE.BoxGeometry(8.0, 2.4, 1.0),
+          [0, -0.3, -2.6],
           0xd4af37
         );
+        // Bus duct trunking overhead
+        const busDuct = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(8.5, 0.3, 0.5)),
+          new THREE.LineBasicMaterial({ color: 0xd4af37, transparent: true, opacity: 0.5 })
+        );
+        busDuct.position.set(0, 1.3, 0);
+        parent.add(busDuct);
       } else if (roomId === "UPS-01") {
-        // Battery Racks
-        [-1.8, 0, 1.8].forEach((rx, idx) => {
-          addSelectableItem(
-            parent,
-            `UPS-01-BAT-0${idx + 1}`,
-            `200kVA Lithium UPS Battery Bank ${idx + 1}`,
-            "UPS",
-            roomId,
-            new THREE.BoxGeometry(1.2, 2.4, 1.8),
-            [rx, -0.3, 0],
-            0xd4af37
-          );
-        });
+        // --- UPS & BATTERY ROOM ---
+        // Inverter Racks
+        addSelectableItem(
+          parent,
+          "UPS-01-INV-01",
+          "200kVA Primary UPS Inverter Rack",
+          "UPS",
+          roomId,
+          new THREE.BoxGeometry(1.2, 2.2, 1.8),
+          [-1.5, -0.4, 0],
+          0xd4af37
+        );
+        addSelectableItem(
+          parent,
+          "UPS-01-INV-02",
+          "200kVA Standby UPS Inverter Rack",
+          "UPS",
+          roomId,
+          new THREE.BoxGeometry(1.2, 2.2, 1.8),
+          [0, -0.4, 0],
+          0xd4af37
+        );
+        // Battery Racks along rear wall
+        addSelectableItem(
+          parent,
+          "UPS-01-BAT-01",
+          "Lithium Battery Bank Bank 1",
+          "UPS",
+          roomId,
+          new THREE.BoxGeometry(1.0, 2.0, 2.4),
+          [1.8, -0.5, -1.8],
+          0xd4af37
+        );
+        addSelectableItem(
+          parent,
+          "UPS-01-BAT-02",
+          "Lithium Battery Bank Bank 2",
+          "UPS",
+          roomId,
+          new THREE.BoxGeometry(1.0, 2.0, 2.4),
+          [1.8, -0.5, 1.8],
+          0xd4af37
+        );
+        // FM-200 Fire Suppression Cylinder
+        const fireCyl = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(0.5, 1.6, 0.5)),
+          new THREE.LineBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.6 })
+        );
+        fireCyl.position.set(-2.2, -0.7, -2.5);
+        parent.add(fireCyl);
       } else if (roomId === "SRV-01") {
-        // 6 Server Racks in 2 rows
-        let rackIdx = 1;
-        [-2.2, 0, 2.2].forEach((sx) => {
-          [-1.5, 1.5].forEach((sz) => {
+        // --- SERVER ROOM (8 Cabinets, In-Row Chiller, Cable Ladders) ---
+        const racksCol1 = [-2.2, -0.8, 0.6, 2.0];
+        let rackNum = 1;
+        racksCol1.forEach((x) => {
+          [-1.5, 1.5].forEach((z) => {
             addSelectableItem(
               parent,
-              `SRV-01-RACK-0${rackIdx}`,
-              `High-Density HPC Server Rack 0${rackIdx}`,
+              `SRV-01-RACK-0${rackNum}`,
+              `HPC Server Rack 0${rackNum}`,
               "SERVER_RACK",
               roomId,
-              new THREE.BoxGeometry(1.4, 2.6, 0.9),
-              [sx, -0.2, sz],
+              new THREE.BoxGeometry(1.1, 2.4, 1.1),
+              [x, -0.3, z],
               0x9d8eb5
             );
-            rackIdx++;
+            rackNum++;
           });
         });
-        // Core Fiber Switch
+        // In-row precision chiller
+        addSelectableItem(
+          parent,
+          "SRV-01-CHILLER",
+          "In-Row Precision Chiller CRAC",
+          "CHILLER",
+          roomId,
+          new THREE.BoxGeometry(0.8, 2.4, 1.4),
+          [-3.2, -0.3, 0],
+          0x38bdf8
+        );
+        // Core optical fiber switch
         addSelectableItem(
           parent,
           "SW-MDF-CORE",
-          "MDF Campus Core Optical Switch",
+          "Campus Core Optical Switch MDF",
           "NETWORK_SWITCH",
           roomId,
           new THREE.BoxGeometry(2.0, 0.6, 0.7),
           [0, 1.2, -2.6],
           0xd4af37
         );
+        // Cable Ladders
+        const ladder1 = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(6.5, 0.15, 0.6)),
+          new THREE.LineBasicMaterial({ color: 0x9d8eb5, transparent: true, opacity: 0.4 })
+        );
+        ladder1.position.set(0, 1.2, -1.5);
+        parent.add(ladder1);
+      } else if (roomId === "BUS-01") {
+        // --- BUS BAY (EV Charging Pedestals & Bus Silhouettes) ---
+        [-9, -3, 3, 9].forEach((x, idx) => {
+          addSelectableItem(
+            parent,
+            `BUS-01-CHG-0${idx + 1}`,
+            `150kW Fast EV Charging Pedestal ${idx + 1}`,
+            "DISTRIBUTION_PANEL",
+            roomId,
+            new THREE.BoxGeometry(0.6, 1.8, 0.5),
+            [x, -0.6, -2.5],
+            0xd4af37
+          );
+        });
+        [-6, 6].forEach((x, idx) => {
+          const busGroup = new THREE.Group();
+          busGroup.position.set(x, -0.6, 1.0);
+          parent.add(busGroup);
+          addSelectableItem(
+            busGroup,
+            `BUS-EV-0${idx + 1}`,
+            `Campus Electric Shuttle Bus ${idx + 1}`,
+            "WORKSTATION",
+            roomId,
+            new THREE.BoxGeometry(8.5, 2.1, 2.6),
+            [0, 0, 0],
+            0x9d8eb5
+          );
+        });
+      } else if (roomId === "VLSI-201") {
+        // --- VLSI CLEAN-PREP LAB ---
+        // Air Shower Cubicle
+        addSelectableItem(
+          parent,
+          "VLSI-201-AIR-SHOWER",
+          "Cleanroom Air Shower Interlock Cubicle",
+          "WORKSTATION",
+          roomId,
+          new THREE.BoxGeometry(2.0, 2.5, 1.8),
+          [-3.2, -0.3, -2.4],
+          0x38bdf8
+        );
+        // 4 ESD Workstation Islands with Dual CAD Monitors & Logic Analyzers
+        [-1, 2.2].forEach((x, i) => {
+          [-1.2, 1.5].forEach((z, j) => {
+            addSelectableItem(
+              parent,
+              `VLSI-201-BENCH-${i * 2 + j + 1}`,
+              `ESD Microelectronics Workstation ${i * 2 + j + 1}`,
+              "WORKSTATION",
+              roomId,
+              new THREE.BoxGeometry(2.4, 0.8, 1.2),
+              [x, -0.6, z],
+              0xd4af37
+            );
+          });
+        });
       } else if (roomId === "ROB-202") {
-        // Robotic Workcells & Cage
+        // --- ROBOTICS & AUTONOMOUS SYSTEMS LAB ---
+        // Industrial 6-Axis Robot Arms
+        [-1.8, 1.8].forEach((rx, idx) => {
+          const armGroup = new THREE.Group();
+          armGroup.position.set(rx, -0.5, 0);
+          parent.add(armGroup);
+          addSelectableItem(
+            armGroup,
+            `ROB-202-ARM-0${idx + 1}`,
+            `Industrial 6-Axis Robotic Arm ${idx + 1}`,
+            "WORKSTATION",
+            roomId,
+            new THREE.BoxGeometry(1.2, 0.8, 1.2),
+            [0, 0, 0],
+            0xd4af37
+          );
+          // Arm links
+          const armLink = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.BoxGeometry(0.4, 1.0, 0.4)),
+            new THREE.LineBasicMaterial({ color: 0xd4af37, transparent: true, opacity: 0.6 })
+          );
+          armLink.position.set(0, 0.8, 0);
+          armGroup.add(armLink);
+        });
+        // Protective Interlock Safety Cage
         addSelectableItem(
           parent,
           "ROB-202-CAGE",
-          "Autonomous Robotic Arm Safety Test Cell",
+          "Robotic Arm Safety Interlock Enclosure",
           "WORKSTATION",
           roomId,
-          new THREE.BoxGeometry(4.5, 2.6, 4.5),
-          [0, -0.2, 0],
+          new THREE.BoxGeometry(6.5, 2.2, 3.5),
+          [0, 0, 0],
           0xd4af37
         );
-      } else if (roomId.startsWith("CR-")) {
-        // Classrooms Desks Rows (Selectable Individual Desks)
-        let deskIdx = 1;
-        [-1.6, 0.2, 2.0].forEach((dz) => {
-          [-2.5, 0, 2.5].forEach((dx) => {
-            addSelectableItem(
-              parent,
-              `${roomId}-DESK-0${deskIdx}`,
-              `Student Study Bench 0${deskIdx}`,
-              "FURNITURE",
-              roomId,
-              new THREE.BoxGeometry(1.8, 0.72, 0.75),
-              [dx, -0.9, dz],
-              0x9d8eb5
-            );
-            deskIdx++;
-          });
-        });
-        // Teacher Smart Podium
+        // Optical MoCap Gantry Frame
+        const mocap = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(7.2, 0.2, 4.2)),
+          new THREE.LineBasicMaterial({ color: 0x9d8eb5, transparent: true, opacity: 0.4 })
+        );
+        mocap.position.set(0, 1.2, 0);
+        parent.add(mocap);
+      } else if (roomId === "HV-203") {
+        // --- HIGH-VOLTAGE POWER SYSTEMS LAB ---
+        // Marx Impulse Generator Multi-Stage Tower
         addSelectableItem(
           parent,
-          `${roomId}-PODIUM`,
-          "Instructor Multimedia Podium & Audio Control",
+          "HV-203-MARX-TOWER",
+          "Marx Impulse Voltage Generator Tower",
+          "TRANSFORMER",
+          roomId,
+          new THREE.BoxGeometry(1.6, 2.6, 1.6),
+          [-2.5, -0.2, 0],
+          0xd4af37
+        );
+        // Faraday Safety Cage Enclosure
+        addSelectableItem(
+          parent,
+          "HV-203-FARADAY-CAGE",
+          "Faraday High-Voltage Test Cage",
+          "WORKSTATION",
+          roomId,
+          new THREE.BoxGeometry(3.8, 2.6, 3.8),
+          [1.8, -0.2, 0],
+          0x9d8eb5
+        );
+      } else if (roomId === "SEM-204") {
+        // --- SEMINAR & AUDITORIUM HALL ---
+        // Front Stage Platform
+        addSelectableItem(
+          parent,
+          "SEM-204-STAGE",
+          "Main Seminar Auditorium Stage Platform",
           "PODIUM",
           roomId,
-          new THREE.BoxGeometry(1.2, 1.0, 0.75),
-          [0, -0.8, -2.5],
+          new THREE.BoxGeometry(9.5, 0.5, 1.5),
+          [0, -1.1, -2.8],
           0xd4af37
         );
-        // Interactive Smartboard
+        // Motorized Presentation Screen
         addSelectableItem(
           parent,
-          `${roomId}-SMARTBOARD`,
-          "85-inch Multi-touch Ultra HD Interactive Display",
+          "SEM-204-SCREEN",
+          "Motorized 200-inch Presentation Screen",
           "SMARTBOARD",
           roomId,
-          new THREE.BoxGeometry(3.4, 1.6, 0.08),
-          [0, 0.3, -3.2],
+          new THREE.BoxGeometry(7.0, 2.0, 0.08),
+          [0, 0.4, -3.45],
           0xf5d061
         );
-        // Ceiling Laser Projector
+        // 4 Tiered Auditorium Seating Benches
+        const tierY = [-1.0, -0.6, -0.2, 0.2];
+        const tierZ = [-1.8, -0.4, 1.0, 2.4];
+        tierY.forEach((y, idx) => {
+          addSelectableItem(
+            parent,
+            `SEM-204-TIER-0${idx + 1}`,
+            `Auditorium Tiered Seating Bench Row ${idx + 1}`,
+            "FURNITURE",
+            roomId,
+            new THREE.BoxGeometry(9.8, 0.45, 0.45),
+            [0, y + 0.35, tierZ[idx]],
+            0x9d8eb5
+          );
+        });
+      } else if (roomId === "ADM-301") {
+        // --- DEAN'S OFFICE & COUNCIL ---
+        // Executive Conference Table
         addSelectableItem(
           parent,
-          `${roomId}-PROJECTOR`,
-          "Ceiling Mount 6000-Lumen Laser Projector",
-          "PROJECTOR",
+          "ADM-301-CONF-TABLE",
+          "Executive Boardroom Conference Table",
+          "FURNITURE",
           roomId,
-          new THREE.BoxGeometry(0.8, 0.35, 0.6),
-          [0, 1.3, -0.5],
+          new THREE.BoxGeometry(4.8, 0.15, 2.2),
+          [0, -0.7, -0.5],
+          0xd4af37
+        );
+        // Dean's Desk in alcove
+        addSelectableItem(
+          parent,
+          "ADM-301-DEAN-DESK",
+          "Dean's Executive Mahogany Desk",
+          "FURNITURE",
+          roomId,
+          new THREE.BoxGeometry(2.2, 0.75, 1.1),
+          [-3.8, -0.7, 2.0],
           0x9d8eb5
         );
       } else if (roomId === "CTR-302") {
+        // --- SCADA NOC CONTROL ROOM ---
         // Curved SCADA Video Wall
         addSelectableItem(
           parent,
@@ -532,10 +870,96 @@ export function CampusCanvas3D({
           "Central Operations Command SCADA Video Wall",
           "WORKSTATION",
           roomId,
-          new THREE.BoxGeometry(8.5, 2.2, 0.3),
-          [0, 0, -2.4],
+          new THREE.BoxGeometry(9.2, 2.2, 0.15),
+          [0, 0.2, -3.2],
           0xd4af37
         );
+        // Operator Curved Console Desks
+        addSelectableItem(
+          parent,
+          "CTR-302-CONSOLE-WEST",
+          "Grid Operations Control Console West",
+          "WORKSTATION",
+          roomId,
+          new THREE.BoxGeometry(3.2, 0.75, 1.2),
+          [-2.5, -0.7, 0],
+          0x9d8eb5
+        );
+        addSelectableItem(
+          parent,
+          "CTR-302-CONSOLE-EAST",
+          "Cyber NOC Control Console East",
+          "WORKSTATION",
+          roomId,
+          new THREE.BoxGeometry(3.2, 0.75, 1.2),
+          [2.5, -0.7, 0],
+          0x9d8eb5
+        );
+      } else if (roomId === "RF-303") {
+        // --- ROOFTOP SOLAR PV ARRAYS & TELECOM LATTICE MAST ---
+        // 6 Banks of Tilted Solar PV Panels
+        const panelXs = [-10, -6, -2, 2, 6, 10];
+        panelXs.forEach((px, pIdx) => {
+          const pvGroup = new THREE.Group();
+          pvGroup.position.set(px, 0.2, 0);
+          pvGroup.rotation.set(-0.35, 0, 0);
+          parent.add(pvGroup);
+
+          addSelectableItem(
+            pvGroup,
+            `RF-303-SOLAR-BANK-0${pIdx + 1}`,
+            `50kW Rooftop Bifacial Solar PV Array ${pIdx + 1}`,
+            "GENERATOR",
+            roomId,
+            new THREE.BoxGeometry(3.2, 0.08, 3.8),
+            [0, 0, 0],
+            0xd4af37
+          );
+          // Subdivided cell grid
+          const cellGrid = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.BoxGeometry(3.0, 0.02, 3.6)),
+            new THREE.LineBasicMaterial({ color: 0xf5d061, transparent: true, opacity: 0.8 })
+          );
+          cellGrid.position.set(0, 0.05, 0);
+          pvGroup.add(cellGrid);
+        });
+
+        // Telecom / Microwave Lattice Mast with 5G MIMO & Lightning Arrestor
+        const mastGroup = new THREE.Group();
+        mastGroup.position.set(0, 2.2, -2.0);
+        parent.add(mastGroup);
+
+        addSelectableItem(
+          mastGroup,
+          "RF-303-TELECOM-MAST",
+          "Campus 5G Core & Microwave Telecom Lattice Mast",
+          "NETWORK_SWITCH",
+          roomId,
+          new THREE.BoxGeometry(1.2, 4.4, 1.2),
+          [0, 0, 0],
+          0x9d8eb5
+        );
+        // Top crossarm
+        const crossArm = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(2.2, 0.2, 0.4)),
+          new THREE.LineBasicMaterial({ color: 0xd4af37, transparent: true, opacity: 0.6 })
+        );
+        crossArm.position.set(0, 2.2, 0);
+        mastGroup.add(crossArm);
+        // Microwave Drum Antenna
+        const drum = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(0.7, 0.7, 0.4)),
+          new THREE.LineBasicMaterial({ color: 0xf5d061, transparent: true, opacity: 0.7 })
+        );
+        drum.position.set(-0.9, 1.5, 0.4);
+        mastGroup.add(drum);
+        // Lightning arrestor rod
+        const rod = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(0.08, 0.8, 0.08)),
+          new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })
+        );
+        rod.position.set(0, 2.6, 0);
+        mastGroup.add(rod);
       }
     }
 
@@ -1033,14 +1457,12 @@ export function CampusCanvas3D({
         </div>
       </div>
 
-      {/* 3. FLOATING BOTTOM HUD: EXPLODED VIEW SLIDER & UTILITY TOGGLES */}
-      <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between pointer-events-none z-10">
+      {/* 3. SLEEK FLOATING BOTTOM CONTROLS: EXPLODED VIEW & UTILITY TOGGLES */}
+      <div className="absolute bottom-3 left-3 flex items-center space-x-3 pointer-events-none z-10">
         {/* Exploded View Height Slider */}
-        <div className="p-2.5 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl flex items-center space-x-3">
-          <div className="flex items-center space-x-1.5 text-[#D4AF37]">
-            <Sliders className="w-3.5 h-3.5" />
-            <span className="text-[11px] font-mono font-bold">EXPLODE</span>
-          </div>
+        <div className="px-3 py-1.5 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl flex items-center space-x-2">
+          <Sliders className="w-3.5 h-3.5 text-[#D4AF37]" />
+          <span className="text-[10px] font-mono font-bold text-[#D4AF37]">EXPLODE</span>
           <input
             type="range"
             min="0"
@@ -1048,118 +1470,68 @@ export function CampusCanvas3D({
             step="0.2"
             value={explodedDistance}
             onChange={(e) => setExplodedDistance(parseFloat(e.target.value))}
-            className="w-24 sm:w-36 accent-[#D4AF37] cursor-pointer"
+            className="w-20 sm:w-28 accent-[#D4AF37] cursor-pointer"
           />
-          <span className="text-[11px] font-mono text-[#F5D061] w-10 text-right">
+          <span className="text-[10px] font-mono text-[#F5D061] w-8 text-right">
             {explodedDistance.toFixed(1)}m
           </span>
         </div>
 
-        {/* Selected Room Live Spec Badge (Floating Center/Bottom) */}
-        {selectedRoom && (
-          <div className="hidden md:flex flex-col p-2.5 rounded-lg bg-[#14151A]/95 border border-[#D4AF37]/50 backdrop-blur-md pointer-events-auto shadow-2xl max-w-sm">
-            <div className="flex items-center justify-between space-x-3 mb-1">
-              <span className="text-xs font-mono font-bold text-[#FFFFFF]">{selectedRoom.name}</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#D4AF37]/20 text-[#F5D061] border border-[#D4AF37]/40">
-                {selectedRoom.code}
-              </span>
-            </div>
-            <p className="text-[11px] text-[#9D8EB5] truncate mb-1.5">{selectedRoom.department}</p>
-            <div className="flex items-center space-x-3 text-[10px] font-mono text-[#A69FB1]">
-              <span>Load: <strong className="text-[#F5D061]">{selectedRoom.standardLoadKW} kW</strong></span>
-              <span>•</span>
-              <span>Bus: <strong className="text-[#FFFFFF]">{selectedRoom.powerBusConnection.split("->")[0]}</strong></span>
-            </div>
-          </div>
-        )}
-
-        {/* Utility Conduit Layer Toggles */}
-        <div className="flex items-center space-x-1.5 p-1 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl">
+        {/* Utility Toggles */}
+        <div className="flex items-center space-x-1 p-1 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl">
           <button
             onClick={() => setShowPower(!showPower)}
-            className={`flex items-center space-x-1.5 px-2.5 py-1 text-xs font-mono rounded transition-all ${
+            className={`flex items-center space-x-1 px-2 py-1 text-[11px] font-mono rounded transition-all ${
               showPower
                 ? "bg-[#D4AF37]/20 text-[#F5D061] border border-[#D4AF37]/50 font-bold"
                 : "text-[#5A5565] border border-transparent"
             }`}
+            title="Toggle 415V Power Grid Conduits"
           >
-            <Zap className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span className="hidden sm:inline">Power Grid</span>
+            <Zap className="w-3 h-3 text-[#D4AF37]" />
+            <span className="hidden sm:inline">Power</span>
           </button>
 
           <button
             onClick={() => setShowData(!showData)}
-            className={`flex items-center space-x-1.5 px-2.5 py-1 text-xs font-mono rounded transition-all ${
+            className={`flex items-center space-x-1 px-2 py-1 text-[11px] font-mono rounded transition-all ${
               showData
                 ? "bg-[#9D8EB5]/20 text-[#BDB0D3] border border-[#9D8EB5]/50 font-bold"
                 : "text-[#5A5565] border border-transparent"
             }`}
+            title="Toggle Fiber Data Conduits"
           >
-            <Network className="w-3.5 h-3.5 text-[#9D8EB5]" />
-            <span className="hidden sm:inline">Data Fiber</span>
-          </button>
-
-          <button
-            onClick={() => setShowPulses(!showPulses)}
-            className={`flex items-center space-x-1 px-2 py-1 text-xs font-mono rounded transition-all ${
-              showPulses
-                ? "bg-[#252833] text-[#FFFFFF]"
-                : "text-[#5A5565]"
-            }`}
-            title="Toggle Animated Signal Flow"
-          >
-            <Activity className="w-3.5 h-3.5 text-[#F5D061]" />
+            <Network className="w-3 h-3 text-[#9D8EB5]" />
+            <span className="hidden sm:inline">Data</span>
           </button>
         </div>
       </div>
-      {/* 4. 3D TRACKING DOM OVERLAYS PROJECTED IN SCREEN SPACE */}
-      <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-        {overlayTags.map((tag) => (
-          <div
-            key={tag.id}
-            style={{ left: `${tag.x}px`, top: `${tag.y}px` }}
-            className="absolute transform -translate-x-1/2 -translate-y-full mb-3 pointer-events-auto transition-transform duration-75"
-          >
-            <div
-              className={`flex items-center space-x-2 px-2.5 py-1 rounded-md shadow-2xl backdrop-blur-md border text-xs font-mono font-bold animate-fadeIn ${
-                tag.isIncident
-                  ? "bg-[#7F1D1D]/90 border-[#EF4444] text-[#FCA5A5]"
-                  : "bg-[#14151A]/90 border-[#D4AF37] text-[#F5D061]"
-              }`}
-            >
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  tag.isIncident ? "bg-[#EF4444] animate-ping" : "bg-[#D4AF37]"
-                }`}
-              />
-              <span>{tag.title}</span>
-              <span className="text-[10px] opacity-75 font-normal">[{tag.status}]</span>
-            </div>
-          </div>
-        ))}
-      </div>
 
-      {/* 5. CONTEXTUAL LIVE TELEMETRY BADGE (Top-Right HUD) */}
+      {/* 4. COMPACT FLOATING INSPECTION POPOVER WHEN AN ITEM IS SELECTED */}
       {selectedRoom && (
-        <div className="absolute top-16 right-3 p-3 rounded-lg bg-[#14151A]/95 border border-[#D4AF37]/50 backdrop-blur-md pointer-events-auto shadow-2xl max-w-xs z-10 font-mono text-xs">
+        <div className="absolute top-14 right-3 p-3 rounded-lg bg-[#14151A]/95 border border-[#D4AF37]/50 backdrop-blur-md pointer-events-auto shadow-2xl max-w-[260px] z-20 font-mono text-xs">
           <div className="flex items-center justify-between pb-1.5 border-b border-[#252833] mb-2">
             <span className="text-[#FFFFFF] font-bold truncate max-w-[170px]">{selectedRoom.name}</span>
-            <span className="text-[10px] text-[#D4AF37] bg-[#D4AF37]/15 px-1.5 py-0.5 rounded border border-[#D4AF37]/30">
-              {selectedRoom.code}
-            </span>
+            <button
+              onClick={() => onSelectEntity("")}
+              className="text-[#8A8594] hover:text-[#FFFFFF] p-0.5"
+              title="Close panel"
+            >
+              ×
+            </button>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-[11px] text-[#A69FB1]">
-            <div>
-              <div className="text-[9px] uppercase text-[#767180]">Standard Load</div>
-              <div className="text-[#F5D061] font-bold">{selectedRoom.standardLoadKW} kW</div>
+          <div className="space-y-1 text-[10px] text-[#A69FB1]">
+            <div className="flex justify-between">
+              <span className="text-[#767180]">Code:</span>
+              <span className="text-[#F5D061] font-bold">{selectedRoom.code}</span>
             </div>
-            <div>
-              <div className="text-[9px] uppercase text-[#767180]">Power Bus</div>
-              <div className="text-[#FFFFFF] truncate">{selectedRoom.powerBusConnection.split("->")[0]}</div>
+            <div className="flex justify-between">
+              <span className="text-[#767180]">Standard Load:</span>
+              <span className="text-[#FFFFFF]">{selectedRoom.standardLoadKW} kW</span>
             </div>
-            <div>
-              <div className="text-[9px] uppercase text-[#767180]">Operational Status</div>
-              <div
+            <div className="flex justify-between">
+              <span className="text-[#767180]">Status:</span>
+              <span
                 className={
                   incidentAffectedIds.has(selectedRoom.id) ||
                   (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId))
@@ -1171,11 +1543,7 @@ export function CampusCanvas3D({
                 (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId))
                   ? "SEVERED"
                   : "NOMINAL"}
-              </div>
-            </div>
-            <div>
-              <div className="text-[9px] uppercase text-[#767180]">Provenance</div>
-              <div className="text-[#9D8EB5]">SYNTHETIC</div>
+              </span>
             </div>
           </div>
         </div>

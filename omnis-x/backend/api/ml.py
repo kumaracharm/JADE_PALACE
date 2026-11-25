@@ -85,7 +85,9 @@ def list_models():
             "features": artifact.get("features", []),
             "target": meta.get("target", "target"),
             "classes": [str(c) for c in artifact.get("classes", [])] if "classes" in artifact else None,
-            "metrics": metrics_data.get("models", {}).get(key, {}),
+            "metrics": metrics_data.get("models", {}).get(key)
+            or metrics_data.get("models", {}).get(key.replace("grid", "infrastructure"))
+            or {},
         })
 
     return {

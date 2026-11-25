@@ -33,7 +33,7 @@ export function ResponseWorkspace({
   onNavigateToTwin,
 }: ResponseWorkspaceProps) {
   const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(initialIncidentId || null);
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(initialIncidentId || "INC-DEMO-01");
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [selectedAlternative, setSelectedAlternative] = useState<string>("ALT-BALANCED");
@@ -48,6 +48,8 @@ export function ResponseWorkspace({
       setIncidents(incs);
       if (incs.length > 0 && !selectedIncidentId) {
         setSelectedIncidentId(incs[0].incident_id);
+      } else if (!selectedIncidentId) {
+        setSelectedIncidentId("INC-DEMO-01");
       }
     });
   }, [selectedIncidentId]);
