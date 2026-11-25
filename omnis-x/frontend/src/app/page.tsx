@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { TopNav } from "@/components/navigation/TopNav";
 import { ToolRail } from "@/components/navigation/ToolRail";
-import { FloorPlanCanvas } from "@/components/canvas/FloorPlanCanvas";
-import { DependencyGraphView } from "@/components/graph/DependencyGraphView";
+import { CampusCanvas3D } from "@/components/canvas3d/CampusCanvas3D";
 import { EntityInspector } from "@/components/inspector/EntityInspector";
 import { TelemetryTimeline } from "@/components/timeline/TelemetryTimeline";
 import { SimulationPanel } from "@/components/simulation/SimulationPanel";
-import { CampusCanvas3D } from "@/components/canvas3d/CampusCanvas3D";
 import { CinematicIntro } from "@/components/cinematic/CinematicIntro";
+import { CommandWorkspace } from "@/components/command/CommandWorkspace";
+import { ResponseWorkspace } from "@/components/response/ResponseWorkspace";
+import { ReportIncidentModal } from "@/components/reporting/ReportIncidentModal";
 import {
   CampusEntity,
   EntityRelationship,
@@ -22,9 +23,11 @@ export default function DigitalTwinExplorerPage() {
   // Cinematic Intro Screen State
   const [showIntro, setShowIntro] = useState<boolean>(true);
 
+  // Three-Dashboard Shared-State Workspace Ecosystem
+  const [activeWorkspace, setActiveWorkspace] = useState<"COMMAND" | "TWIN" | "RESPONSE">("TWIN");
+
   // Navigation & Floor State
   const [currentFloor, setCurrentFloor] = useState<string>("FLOOR-1");
-  const [activeView, setActiveView] = useState<"CAMPUS_3D" | "FLOORPLAN" | "GRAPH">("CAMPUS_3D");
 
   // Visual Layers State
   const [activeLayers, setActiveLayers] = useState<Set<ActiveLayerId>>(
@@ -42,10 +45,16 @@ export default function DigitalTwinExplorerPage() {
   const [relationships, setRelationships] = useState<EntityRelationship[]>([]);
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>("LAB-01-EE");
 
+  // Active Incident Focus for Response Workspace
+  const [targetIncidentId, setTargetIncidentId] = useState<string | null>(null);
+
   // Chaos Simulation State
   const [isSimModalOpen, setIsSimModalOpen] = useState<boolean>(false);
   const [simulationActive, setSimulationActive] = useState<boolean>(false);
   const [incidentAffectedIds, setIncidentAffectedIds] = useState<Set<string>>(new Set());
+
+  // Incident Reporting Modal State
+  const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
 
   // Load campus entities and relationships on startup
   useEffect(() => {
@@ -148,8 +157,6 @@ export default function DigitalTwinExplorerPage() {
     setIncidentAffectedIds(new Set());
   };
 
-  const activeFloorData = CAMPUS_FLOORS[currentFloor] || CAMPUS_FLOORS["FLOOR-1"];
-
   // If Cinematic Intro is active, render full-screen immersive intro
   if (showIntro) {
     return (
@@ -162,84 +169,104 @@ export default function DigitalTwinExplorerPage() {
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#0E0F12] text-[#E2E1E6] font-sans select-none">
-      {/* 1. TOP NAVIGATION (Fixed height) */}
+      {/* 1. TOP NAVIGATION WITH THREE-DASHBOARD WORKSPACE TABS */}
       <TopNav
         currentFloor={currentFloor}
         onSelectFloor={setCurrentFloor}
         simulationActive={simulationActive}
         onToggleSimulation={() => setIsSimModalOpen(true)}
         allEntities={entities}
-        onSelectEntity={setSelectedEntityId}
-        activeView={activeView}
-        onToggleView={setActiveView}
+        onSelectEntity={(entId) => {
+          setSelectedEntityId(entId);
+          setActiveWorkspace("TWIN");
+        }}
+        activeWorkspace={activeWorkspace}
+        onSelectWorkspace={setActiveWorkspace}
+        onOpenReportModal={() => setIsReportModalOpen(true)}
         onReplayIntro={() => setShowIntro(true)}
       />
 
-      {/* 2. MAIN APPLICATION WORKSPACE (Zero whole-page scrolling) */}
+      {/* 2. MAIN APPLICATION WORKSPACE CONTENT */}
       <div className="flex flex-1 w-full overflow-hidden relative min-h-0 min-w-0">
-        {/* Left Vertical Tool Rail (Fixed width) */}
-        <ToolRail
-          currentFloor={currentFloor}
-          onSelectFloor={setCurrentFloor}
-          activeLayers={activeLayers}
-          onToggleLayer={handleToggleLayer}
-        />
+        {activeWorkspace === "COMMAND" ? (
+          <CommandWorkspace
+            onNavigateToTwin={(entityId) => {
+              if (entityId) setSelectedEntityId(entityId);
+              setActiveWorkspace("TWIN");
+            }}
+            onNavigateToResponse={(incidentId) => {
+              if (incidentId) setTargetIncidentId(incidentId);
+              setActiveWorkspace("RESPONSE");
+            }}
+            onOpenReportModal={() => setIsReportModalOpen(true)}
+            onOpenSimulation={() => setIsSimModalOpen(true)}
+          />
+        ) : activeWorkspace === "RESPONSE" ? (
+          <ResponseWorkspace
+            initialIncidentId={targetIncidentId}
+            onNavigateToTwin={(entityId) => {
+              if (entityId) setSelectedEntityId(entityId);
+              setActiveWorkspace("TWIN");
+            }}
+          />
+        ) : (
+          /* DIGITAL TWIN 3D UNIFIED WORKSPACE (NO 2D COMPETING CANVAS) */
+          <div className="flex flex-1 w-full h-full overflow-hidden relative min-h-0 min-w-0">
+            {/* Left Vertical Tool Rail */}
+            <ToolRail
+              currentFloor={currentFloor}
+              onSelectFloor={setCurrentFloor}
+              activeLayers={activeLayers}
+              onToggleLayer={handleToggleLayer}
+            />
 
-        {/* Center Spatial Canvas + Telemetry Stack */}
-        <main className="flex-1 flex flex-col h-full overflow-hidden relative min-h-0 min-w-0">
-          <div className="flex-1 w-full h-full relative overflow-hidden min-h-0 min-w-0">
-            {activeView === "CAMPUS_3D" ? (
-              <CampusCanvas3D
-                selectedEntityId={selectedEntityId}
-                onSelectEntity={setSelectedEntityId}
-                incidentAffectedIds={incidentAffectedIds}
-                simulationActive={simulationActive}
-              />
-            ) : activeView === "FLOORPLAN" ? (
-              <FloorPlanCanvas
-                floorData={activeFloorData}
-                activeLayers={activeLayers}
-                selectedEntityId={selectedEntityId}
-                onSelectEntity={setSelectedEntityId}
+            {/* Center High-Performance 3D WebGL Canvas */}
+            <main className="flex-1 flex flex-col h-full overflow-hidden relative min-h-0 min-w-0">
+              <div className="flex-1 w-full h-full relative overflow-hidden min-h-0 min-w-0">
+                <CampusCanvas3D
+                  selectedEntityId={selectedEntityId}
+                  onSelectEntity={setSelectedEntityId}
+                  incidentAffectedIds={incidentAffectedIds}
+                  simulationActive={simulationActive}
+                />
+              </div>
+
+              {/* Bottom Contextual Telemetry Timeline */}
+              <TelemetryTimeline selectedEntityId={selectedEntityId} />
+            </main>
+
+            {/* Right Autodesk Tandem-Style Entity Inspector */}
+            {selectedEntityId && (
+              <EntityInspector
+                entityId={selectedEntityId}
+                onClose={() => setSelectedEntityId(null)}
                 entityMap={entityMap}
-                incidentAffectedIds={incidentAffectedIds}
-                simulationActive={simulationActive}
-              />
-            ) : (
-              <DependencyGraphView
-                entities={entities}
-                relationships={relationships}
-                selectedEntityId={selectedEntityId}
                 onSelectEntity={setSelectedEntityId}
-                incidentAffectedIds={incidentAffectedIds}
+                onInitiateWorkOrder={(entId) => {
+                  setTargetIncidentId("INC-DEMO-01");
+                  setActiveWorkspace("RESPONSE");
+                }}
               />
             )}
           </div>
-
-          {/* Bottom Collapsible Telemetry Timeline (Predictable height, no overflow) */}
-          <TelemetryTimeline selectedEntityId={selectedEntityId} />
-        </main>
-
-        {/* Right Autodesk Tandem-Style Entity Inspector (Fixed width, independent scroll) */}
-        {selectedEntityId && (
-          <EntityInspector
-            entityId={selectedEntityId}
-            onClose={() => setSelectedEntityId(null)}
-            entityMap={entityMap}
-            onSelectEntity={setSelectedEntityId}
-            onInitiateWorkOrder={(entId) => {
-              alert(`Initiating diagnostic work order for ${entId}`);
-            }}
-          />
         )}
       </div>
 
-      {/* 3. SIMULATION MODAL */}
+      {/* 3. SHADOW TWIN CHAOS SIMULATION MODAL */}
       <SimulationPanel
         isOpen={isSimModalOpen}
         onClose={() => setIsSimModalOpen(false)}
         onApplySimulationImpact={handleApplySimulation}
         onClearSimulation={handleClearSimulation}
+      />
+
+      {/* 4. STUDENT & STAFF INCIDENT REPORTING PORTAL MODAL */}
+      <ReportIncidentModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onIncidentReported={(inc) => {
+          setTargetIncidentId(inc.incident_id);
+        }}
       />
     </div>
   );

@@ -20,8 +20,9 @@ interface TopNavProps {
   onToggleSimulation: () => void;
   allEntities: CampusEntity[];
   onSelectEntity: (entityId: string) => void;
-  activeView: "FLOORPLAN" | "CAMPUS_3D" | "GRAPH";
-  onToggleView: (view: "FLOORPLAN" | "CAMPUS_3D" | "GRAPH") => void;
+  activeWorkspace: "COMMAND" | "TWIN" | "RESPONSE";
+  onSelectWorkspace: (ws: "COMMAND" | "TWIN" | "RESPONSE") => void;
+  onOpenReportModal: () => void;
   onReplayIntro?: () => void;
 }
 
@@ -32,8 +33,9 @@ export function TopNav({
   onToggleSimulation,
   allEntities,
   onSelectEntity,
-  activeView,
-  onToggleView,
+  activeWorkspace,
+  onSelectWorkspace,
+  onOpenReportModal,
   onReplayIntro,
 }: TopNavProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -153,8 +155,51 @@ export function TopNav({
         )}
       </div>
 
-      {/* Right Controls: View Switcher, Simulation Mode, Profile */}
+      {/* Right Controls: Three-Dashboard Workspace Switcher, Report Button, Simulation, Profile */}
       <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+        {/* Workspace Switcher: Command vs 3D Twin vs Response */}
+        <div className="flex bg-[#191B22] p-0.5 rounded-lg border border-[#2D303B] flex-shrink-0">
+          <button
+            onClick={() => onSelectWorkspace("COMMAND")}
+            className={`px-2 sm:px-3 py-1 text-xs font-medium rounded transition-all font-mono ${
+              activeWorkspace === "COMMAND"
+                ? "bg-[#D4AF37] text-[#121316] font-bold shadow-md shadow-[#D4AF37]/20"
+                : "text-[#9D8EB5] hover:text-[#E2E1E6]"
+            }`}
+          >
+            Command
+          </button>
+          <button
+            onClick={() => onSelectWorkspace("TWIN")}
+            className={`px-2 sm:px-3 py-1 text-xs font-medium rounded transition-all font-mono ${
+              activeWorkspace === "TWIN"
+                ? "bg-[#D4AF37] text-[#121316] font-bold shadow-md shadow-[#D4AF37]/20"
+                : "text-[#9D8EB5] hover:text-[#E2E1E6]"
+            }`}
+          >
+            3D Twin
+          </button>
+          <button
+            onClick={() => onSelectWorkspace("RESPONSE")}
+            className={`px-2 sm:px-3 py-1 text-xs font-medium rounded transition-all font-mono ${
+              activeWorkspace === "RESPONSE"
+                ? "bg-[#D4AF37] text-[#121316] font-bold shadow-md shadow-[#D4AF37]/20"
+                : "text-[#9D8EB5] hover:text-[#E2E1E6]"
+            }`}
+          >
+            Response
+          </button>
+        </div>
+
+        {/* Quick Incident Report Modal Button */}
+        <button
+          onClick={onOpenReportModal}
+          className="flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-mono rounded bg-[#D4AF37]/15 border border-[#D4AF37]/40 hover:bg-[#D4AF37] text-[#F5D061] hover:text-[#121316] font-bold transition-all flex-shrink-0"
+          title="Student & Staff Reporting Portal"
+        >
+          <span>+ Report</span>
+        </button>
+
         {/* Cinematic Intro Button */}
         {onReplayIntro && (
           <button
@@ -163,43 +208,9 @@ export function TopNav({
             title="Play Cinematic 3D Intro"
           >
             <Film className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span className="hidden xl:inline">Cinematic Intro</span>
+            <span className="hidden xl:inline">Cinematic</span>
           </button>
         )}
-
-        {/* View Mode Toggle: Spatial 2D vs Campus 3D vs Topology Graph */}
-        <div className="flex bg-[#191B22] p-0.5 rounded-lg border border-[#2D303B] flex-shrink-0">
-          <button
-            onClick={() => onToggleView("FLOORPLAN")}
-            className={`px-2 sm:px-2.5 py-1 text-xs font-medium rounded transition-all font-mono ${
-              activeView === "FLOORPLAN"
-                ? "bg-[#D4AF37] text-[#121316] font-bold shadow-md shadow-[#D4AF37]/20"
-                : "text-[#9D8EB5] hover:text-[#E2E1E6]"
-            }`}
-          >
-            Spatial 2D
-          </button>
-          <button
-            onClick={() => onToggleView("CAMPUS_3D")}
-            className={`px-2 sm:px-2.5 py-1 text-xs font-medium rounded transition-all font-mono ${
-              activeView === "CAMPUS_3D"
-                ? "bg-[#D4AF37] text-[#121316] font-bold shadow-md shadow-[#D4AF37]/20"
-                : "text-[#9D8EB5] hover:text-[#E2E1E6]"
-            }`}
-          >
-            Campus 3D
-          </button>
-          <button
-            onClick={() => onToggleView("GRAPH")}
-            className={`px-2 sm:px-2.5 py-1 text-xs font-medium rounded transition-all font-mono ${
-              activeView === "GRAPH"
-                ? "bg-[#D4AF37] text-[#121316] font-bold shadow-md shadow-[#D4AF37]/20"
-                : "text-[#9D8EB5] hover:text-[#E2E1E6]"
-            }`}
-          >
-            Topology
-          </button>
-        </div>
 
         {/* Counterfactual Simulation Mode Toggle */}
         <button
