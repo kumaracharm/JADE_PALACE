@@ -77,6 +77,12 @@ class IncidentService:
     ) -> IncidentModel:
         incident_id = incident_in.incident_id or f"INC-{uuid.uuid4().hex[:8].upper()}"
 
+        # Idempotency / Safe duplicate handling (e.g. offline resynchronization from PWA)
+        if incident_in.source_id:
+            existing = db.query(IncidentModel).filter_by(source_id=incident_in.source_id).first()
+            if existing:
+                return existing
+
         # Verify root entity exists
         entity = db.query(EntityModel).filter_by(entity_id=incident_in.root_entity_id).first()
         if not entity:

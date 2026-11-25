@@ -60,6 +60,7 @@ export type ProvenanceSourceType =
   | "REAL"
   | "SYNTHETIC"
   | "REPORTED"
+  | "STUDENT_REPORTED"
   | "ESTIMATED";
 
 export interface CampusEntity {

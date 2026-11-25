@@ -665,6 +665,11 @@ export function CommandWorkspace({
                       <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
                         {inc.severity}
                       </span>
+                      {((inc as any).source_type === "STUDENT_REPORTED" || inc.title?.includes("[")) && (
+                        <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#352D42] text-[#D6C4ED] border border-[#7A6199] font-bold">
+                          📱 STUDENT REPORTED
+                        </span>
+                      )}
                     </div>
                     <p className="text-[11px] text-[#9D8EB5] line-clamp-1">{inc.description}</p>
                     <div className="text-[10px] font-mono text-[#767180] flex items-center space-x-3">

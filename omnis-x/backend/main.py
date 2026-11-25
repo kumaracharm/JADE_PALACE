@@ -6,6 +6,8 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+import os
+from fastapi.staticfiles import StaticFiles
 from backend.config import settings
 from backend.database import engine, Base, SessionLocal
 import backend.models  # Registers all models with Base.metadata
@@ -76,6 +78,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount Student Grievance PWA static bundle if present
+pwa_public_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "pwa", "public"))
+if os.path.isdir(pwa_public_dir):
+    app.mount("/student", StaticFiles(directory=pwa_public_dir, html=True), name="student_pwa")
+    logger.info("Mounted Student Grievance PWA at /student from %s", pwa_public_dir)
 
 # Mount API Routers (both with /api/v1 prefix and root prefix for flexible client compatibility)
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)

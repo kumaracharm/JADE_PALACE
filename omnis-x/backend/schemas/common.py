@@ -81,6 +81,7 @@ class CriticalityLevel(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
     MISSION_CRITICAL = "MISSION_CRITICAL"
 
 
@@ -114,6 +115,7 @@ class ProvenanceSourceType(str, Enum):
     REAL = "REAL"
     SYNTHETIC = "SYNTHETIC"
     REPORTED = "REPORTED"
+    STUDENT_REPORTED = "STUDENT_REPORTED"
     ESTIMATED = "ESTIMATED"
 
 

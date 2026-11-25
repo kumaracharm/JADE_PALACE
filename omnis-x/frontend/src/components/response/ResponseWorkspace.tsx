@@ -232,6 +232,7 @@ export function ResponseWorkspace({
             ) : (
               incidents.map((inc) => (
                 <option key={inc.incident_id} value={inc.incident_id}>
+                  {inc.source_type === "STUDENT_REPORTED" || inc.title?.includes("[") ? "📱 [STUDENT] " : ""}
                   {inc.incident_id} - {inc.title}
                 </option>
               ))
@@ -239,6 +240,17 @@ export function ResponseWorkspace({
           </select>
         </div>
       </div>
+
+      {/* Clear Source Banner for Student Reported Incidents */}
+      {incidents.find((i) => i.incident_id === selectedIncidentId && ((i as any).source_type === "STUDENT_REPORTED" || i.title?.includes("["))) && (
+        <div className="flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-[#2B2338] border border-[#7A6199] text-xs font-mono text-[#D6C4ED] shadow-xl">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#B894E6] animate-pulse" />
+          <span className="font-bold text-[#E6C45E] tracking-wider">SOURCE: STUDENT REPORTED</span>
+          <span className="text-[#A490BC]">
+            | Unverified crowdsourced incident from Student PWA • Isolated from automated physical breaker trip until facility sign-off
+          </span>
+        </div>
+      )}
 
       {isAnalyzing ? (
         <div className="p-12 text-center text-xs font-mono text-[#9D8EB5]">

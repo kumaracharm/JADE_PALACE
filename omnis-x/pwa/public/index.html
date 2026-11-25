@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#14151A" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="OMNIS-X Student Grievance PWA with fast 2D Campus Floor Plan" />
+    <title>OMNIS-X // Student Grievance PWA</title>
+
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <link rel="stylesheet" href="/styles.css" />
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/vendor/three/three.module.min.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Top Header matching OMNIS-X TopNav.tsx -->
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-insignia">Ω</div>
+          <div>
+            <div class="brand-row">
+              <span class="brand-title">OMNIS-X</span>
+              <span class="brand-tag">STUDENT PWA</span>
+            </div>
+            <div class="brand-sub" id="portal-subtitle">Apex Institute of Technology</div>
+          </div>
+
+          <div class="breadcrumb">
+            <span>Engineering Block</span>
+            <span>›</span>
+            <span class="breadcrumb-active" id="breadcrumb-floor">LEVEL 01 (Academic Wing)</span>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="mode-switch" id="map-mode-switch" title="Switch Desktop Map View">
+            <button type="button" data-map-mode="2d" class="active">Spatial 2D</button>
+            <button type="button" data-map-mode="3d">3D Twin</button>
+          </div>
+
+          <div class="pill-status" id="conn-pill" title="Connection & Sync Status">
+            <span class="dot" id="conn-dot"></span>
+            <span id="conn-label">ONLINE</span>
+          </div>
+          <button class="btn btn-sm" id="btn-sync-queue" style="display: none;">
+            Sync (<span id="queue-count">0</span>)
+          </button>
+          <button class="btn btn-gold btn-sm" id="btn-install-pwa" style="display: none;">
+            Install
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Workspace -->
+      <main class="workspace" id="workspace">
+        <!-- Desktop Left Pane: Fast Spatial 2D by default, lazy-loaded 3D Twin on click -->
+        <section class="map-pane" aria-label="Campus Map">
+          <div id="desktop-map2d-host"></div>
+
+          <div id="desktop-map3d-wrap">
+            <div id="map3d-container"></div>
+            <div id="hover-tooltip" class="hover-tooltip"></div>
+
+            <div class="map-overlay-top">
+              <div class="floor-bar" id="floor-pills"></div>
+              <div class="view-presets" id="view-presets">
+                <button data-preset="iso" class="active">ISO</button>
+                <button data-preset="top">TOP</button>
+                <button data-preset="front">FRONT</button>
+                <button data-preset="side">SIDE</button>
+                <button id="btn-reset-map">RESET</button>
+              </div>
+            </div>
+
+            <div class="map-overlay-bottom">
+              <div class="explode-box">
+                <span>EXPLODE</span>
+                <input id="explode-slider" type="range" min="0" max="8" step="0.2" value="1.6" style="width:110px;accent-color:#D4AF37;" />
+                <span id="explode-val" style="color:#E6C45E;">1.6m</span>
+              </div>
+
+              <div class="utility-toggles">
+                <button type="button" class="util-btn" id="btn-toggle-power">Power Grid</button>
+                <button type="button" class="util-btn" id="btn-toggle-data">Data Fiber</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Student Grievance Form & Status Drawer (Full screen on Phones) -->
+        <aside class="side-pane">
+          <nav class="tabs" role="tablist">
+            <button class="tab-btn active" data-tab="report">Report Issue</button>
+            <button class="tab-btn" data-tab="status">Campus Status</button>
+            <button class="tab-btn" data-tab="portal">OMNIS-X Sync</button>
+          </nav>
+
+          <div class="tab-body" id="tab-report">
+            <div id="submission-success" class="success-panel" style="display:none;">
+              <div style="width:44px;height:44px;border-radius:50%;background:rgba(82,183,136,0.18);border:1px solid rgba(82,183,136,0.45);color:#52B788;display:grid;place-items:center;margin:0 auto 10px;font-size:18px;">✓</div>
+              <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;">Grievance Report Dispatched</div>
+              <div class="mono" style="font-size:12px;color:#9D8EB5;margin-bottom:10px;">
+                Reference ID: <strong id="success-ticket-code" style="color:#F5D061;"></strong>
+              </div>
+              <div id="success-sync-note" style="font-size:12px;color:#8A8594;margin-bottom:14px;"></div>
+              <button type="button" class="btn btn-gold" id="btn-new-report">Submit Another Issue</button>
+            </div>
+
+            <div id="report-form-container">
+              <!-- Step 1: Location via fast 2D floor plan (inline on phone, synced with desktop map) -->
+              <div class="section-card">
+                <div class="section-label">
+                  <span>1. Where is the problem?</span>
+                  <span class="mono" style="font-size:10px;color:#9D8EB5;">TAP FLOOR PLAN</span>
+                </div>
+
+                <!-- Mobile inline 2D blueprint -->
+                <div id="mobile-map2d-host" class="inline-map2d-host"></div>
+
+                <div class="location-box" id="location-display">
+                  <div class="location-empty">
+                    Tap any room on the college floor plan, or select from the list below.
+                  </div>
+                </div>
+
+                <div class="field" style="margin-top: 10px;">
+                  <label for="room-select">Room / Lab / Wing *</label>
+                  <select id="room-select" class="select">
+                    <option value="">-- Select Room or Wing --</option>
+                  </select>
+                </div>
+
+                <div class="field" id="equipment-field" style="display:none;">
+                  <label>Affected Unit (tap if applicable)</label>
+                  <div class="chip-row" id="equipment-chips" style="margin-top:0;"></div>
+                </div>
+
+                <div class="field" style="margin-bottom:0;">
+                  <label for="location-note">Specific Spot (optional)</label>
+                  <input id="location-note" class="input" type="text" placeholder="e.g., Back row AC vent or water cooler near gate" />
+                </div>
+              </div>
+
+              <!-- Step 2: Issue Type -->
+              <div class="section-card">
+                <div class="section-label">
+                  <span>2. What is the problem?</span>
+                  <span id="selected-cat-badge" class="mono" style="color:var(--gold-soft);">WATER</span>
+                </div>
+                <div class="category-grid" id="category-grid"></div>
+                <div class="chip-row" id="subcategory-chips"></div>
+              </div>
+
+              <!-- Step 3: Details & Send -->
+              <form id="grievance-form" class="section-card" style="margin-bottom:0;">
+                <div class="section-label">
+                  <span>3. Details & Submit</span>
+                  <span class="mono" style="font-size:10px;color:#5A5565;">OFFLINE READY</span>
+                </div>
+
+                <div class="field">
+                  <label for="issue-title">Short Headline *</label>
+                  <input id="issue-title" class="input" type="text" required maxlength="150" placeholder="e.g., AC not cooling in CR-101" />
+                </div>
+
+                <div class="field">
+                  <label>Urgency</label>
+                  <div class="severity-row" id="severity-row"></div>
+                </div>
+
+                <div class="field">
+                  <label for="issue-desc">What is happening? *</label>
+                  <textarea id="issue-desc" class="textarea" required maxlength="1800" placeholder="Describe the water/AC/facility issue and how long it has been happening..."></textarea>
+                </div>
+
+                <div class="field">
+                  <label for="photo-input">Photo Evidence (optional)</label>
+                  <input id="photo-input" class="input" type="file" accept="image/*" capture="environment" />
+                  <div id="photo-preview-wrap" style="display:none;margin-top:8px;">
+                    <img id="photo-preview" alt="Preview" style="max-height:84px;border-radius:6px;border:1px solid #2D303E;" />
+                    <button type="button" class="btn btn-sm" id="btn-clear-photo" style="margin-left:8px;">Remove</button>
+                  </div>
+                </div>
+
+                <div class="field" style="display:flex;align-items:center;justify-content:space-between;">
+                  <label style="margin:0;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text-primary);font-size:13px;">
+                    <input type="checkbox" id="anon-toggle" style="width:16px;height:16px;accent-color:#D4AF37;" />
+                    Submit Anonymously
+                  </label>
+                </div>
+
+                <div id="student-fields">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div class="field">
+                      <label for="student-name">Your Name</label>
+                      <input id="student-name" class="input" type="text" placeholder="Name" />
+                    </div>
+                    <div class="field">
+                      <label for="student-id">Roll / ID</label>
+                      <input id="student-id" class="input" type="text" placeholder="ENG24CS042" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="student-contact">College Email / Phone</label>
+                    <input id="student-contact" class="input" type="text" placeholder="name@college.edu" />
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-gold" style="width:100%;min-height:46px;font-size:13px;" id="btn-submit">
+                  Submit Incident Report
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Tab 2: Live Campus Status -->
+          <div class="tab-body" id="tab-status" style="display:none;">
+            <div class="status-grid" id="system-status-cards"></div>
+
+            <div class="section-card" style="padding:10px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <select id="filter-category" class="select">
+                  <option value="ALL">All Categories</option>
+                </select>
+                <select id="filter-status" class="select">
+                  <option value="ALL">All Statuses</option>
+                  <option value="SUBMITTED">Submitted</option>
+                  <option value="ACKNOWLEDGED">Acknowledged</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                </select>
+              </div>
+              <input id="filter-search" class="input" type="search" placeholder="Search ticket #, room (CR-101), water, AC..." />
+            </div>
+
+            <div id="grievance-feed"></div>
+          </div>
+
+          <!-- Tab 3: OMNIS-X Sync & Admin -->
+          <div class="tab-body" id="tab-portal" style="display:none;">
+            <div class="section-card">
+              <div class="section-label">
+                <span>OMNIS-X (JADE_PALACE) Connection</span>
+                <span class="mono" style="color:var(--gold-soft);">REST API</span>
+              </div>
+              <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;line-height:1.45;">
+                Connect directly to your OMNIS-X website backend (<code class="mono">/api/v1/incidents</code>) or a custom webhook. Reports queued offline sync automatically.
+              </p>
+
+              <div class="field">
+                <label for="cfg-website-name">Institution / Portal Name</label>
+                <input id="cfg-website-name" class="input" type="text" placeholder="OMNIS-X • Apex Institute of Technology" />
+              </div>
+
+              <div class="field">
+                <label for="cfg-integration-mode">Integration Format</label>
+                <select id="cfg-integration-mode" class="select">
+                  <option value="omnisx">OMNIS-X Incident API (/api/v1/incidents)</option>
+                  <option value="webhook">Custom Website Webhook (JSON)</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="cfg-webhook-url">Target Website URL</label>
+                <input id="cfg-webhook-url" class="input" type="url" placeholder="http://127.0.0.1:8000/api/v1/incidents" />
+              </div>
+
+              <div class="field" id="omnisx-user-field">
+                <label for="cfg-omnisx-user">OMNIS-X X-User-Id Header</label>
+                <input id="cfg-omnisx-user" class="input" type="text" placeholder="USR-PRINCIPAL" />
+              </div>
+
+              <div class="field">
+                <label for="cfg-auth-header">Optional Bearer / API Key Header</label>
+                <input id="cfg-auth-header" class="input" type="password" placeholder="Leave blank if using X-User-Id" />
+              </div>
+
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:12px;cursor:pointer;color:var(--text-primary);">
+                <input type="checkbox" id="cfg-auto-forward" checked style="width:16px;height:16px;accent-color:#D4AF37;" />
+                Auto-dispatch new student grievances to OMNIS-X
+              </label>
+
+              <div style="display:flex;gap:8px;">
+                <button type="button" class="btn btn-gold" id="btn-save-config" style="flex:1;min-height:42px;">Save Settings</button>
+                <button type="button" class="btn" id="btn-test-webhook" style="min-height:42px;">Test Ping</button>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-label">
+                <span>Ticket Triage & Status Updates</span>
+                <button type="button" class="btn btn-sm" id="btn-export-json">Export JSON</button>
+              </div>
+              <div id="admin-triage-list"></div>
+            </div>
+          </div>
+        </aside>
+      </main>
+
+      <!-- Mobile Bottom Nav (3 clean tabs: Report, Status, Sync) -->
+      <nav class="mobile-nav">
+        <button data-tab="report" class="active">Report Issue</button>
+        <button data-tab="status">Campus Status</button>
+        <button data-tab="portal">OMNIS-X Sync</button>
+      </nav>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>

@@ -71,6 +71,8 @@ export function CampusCanvas3D({
   const [showPower, setShowPower] = useState<boolean>(true);
   const [showData, setShowData] = useState<boolean>(true);
   const [showPulses, setShowPulses] = useState<boolean>(true);
+
+  // Camera View Presets
   const [viewPreset, setViewPreset] = useState<ViewPreset3D>("iso");
   const [overlayTags, setOverlayTags] = useState<{
     id: string;
@@ -80,6 +82,44 @@ export function CampusCanvas3D({
     y: number;
     isIncident: boolean;
   }[]>([]);
+
+  // Live SSE Telemetry Connection from Shared FastAPI Backend
+  const [liveTelemetry, setLiveTelemetry] = useState<{
+    voltage_v?: number;
+    active_power_kw?: number;
+    current_a?: number;
+    temperature_c?: number;
+  }>({
+    voltage_v: 415.0,
+    active_power_kw: 142.5,
+    current_a: 198.0,
+    temperature_c: 23.4,
+  });
+  const [isSseConnected, setIsSseConnected] = useState<boolean>(false);
+
+  useEffect(() => {
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource("http://127.0.0.1:8000/api/v1/demo/stream");
+      eventSource.onopen = () => setIsSseConnected(true);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data?.telemetry) {
+            setLiveTelemetry(data.telemetry);
+            setIsSseConnected(true);
+          }
+        } catch (err) {}
+      };
+      eventSource.onerror = () => setIsSseConnected(false);
+    } catch (e) {
+      console.warn("SSE connection error in CampusCanvas3D:", e);
+    }
+
+    return () => {
+      if (eventSource) eventSource.close();
+    };
+  }, []);
 
   // Synchronize when currentFloor prop changes
   useEffect(() => {
@@ -1443,6 +1483,24 @@ export function CampusCanvas3D({
               {layer.planeNumber}
             </button>
           ))}
+        </div>
+
+        {/* Live SSE Telemetry HUD Indicator */}
+        <div className="hidden md:flex items-center space-x-2.5 px-3 py-1.5 rounded-lg bg-[#14151A]/95 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-2xl text-xs font-mono">
+          <span className="flex items-center space-x-1.5 text-[11px] font-bold text-emerald-400">
+            <span className={`w-2 h-2 rounded-full ${isSseConnected ? "bg-emerald-400 animate-pulse" : "bg-amber-500"}`} />
+            <span>{isSseConnected ? "LIVE" : "CONNECTING"}</span>
+          </span>
+          <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#2D2A38] text-[#BDB0D3] font-bold border border-[#5E5073]/50">
+            SYNTHETIC LIVE DATA
+          </span>
+          <div className="flex items-center space-x-2.5 text-[11px] text-gray-300">
+            <span>VOLT: <strong className="text-amber-400 font-mono">{liveTelemetry.voltage_v?.toFixed(1) || "415.0"} V</strong></span>
+            <span className="text-gray-600">|</span>
+            <span>POWER: <strong className="text-amber-400 font-mono">{liveTelemetry.active_power_kw?.toFixed(1) || "142.5"} kW</strong></span>
+            <span className="text-gray-600">|</span>
+            <span>CURR: <strong className="text-amber-400 font-mono">{liveTelemetry.current_a?.toFixed(1) || "198.0"} A</strong></span>
+          </div>
         </div>
 
         {/* Camera View Presets */}

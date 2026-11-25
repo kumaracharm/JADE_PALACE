@@ -10,6 +10,7 @@ import {
   X,
   Compass,
   Film,
+  Smartphone,
 } from "lucide-react";
 import { CampusEntity } from "@/types/digital-twin";
 
@@ -239,6 +240,18 @@ export function TopNav({
         >
           <span>+ Report</span>
         </button>
+
+        {/* Student Grievance PWA Quick Launch */}
+        <a
+          href="http://localhost:8090"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center space-x-1.5 px-2 sm:px-2.5 py-1 text-xs font-mono rounded bg-[#352D42] border border-[#5E5073] hover:border-[#D4AF37] text-[#BDB0D3] hover:text-[#FFFFFF] transition-all flex-shrink-0"
+          title="Open Student Grievance PWA on Phone or Browser (Port 8090)"
+        >
+          <Smartphone className="w-3.5 h-3.5 text-[#D4AF37]" />
+          <span className="hidden lg:inline">Student PWA</span>
+        </a>
 
         {/* Cinematic Intro Button */}
         {onReplayIntro && (
