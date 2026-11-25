@@ -3,11 +3,16 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CampusCanvas3D } from "@/components/canvas3d/CampusCanvas3D";
+import { FloorPlanCanvas } from "@/components/canvas/FloorPlanCanvas";
+import { CAMPUS_FLOORS } from "@/data/spatial-campus";
 import { TopNav } from "@/components/navigation/TopNav";
 import { ToolRail } from "@/components/navigation/ToolRail";
 import { EntityInspector } from "@/components/inspector/EntityInspector";
+import { TelemetryTimeline } from "@/components/timeline/TelemetryTimeline";
 import { ReportIncidentModal } from "@/components/reporting/ReportIncidentModal";
 import { SimulationPanel } from "@/components/simulation/SimulationPanel";
+import { CinematicIntro } from "@/components/cinematic/CinematicIntro";
+import { GlassLoginModal } from "@/components/auth/GlassLoginModal";
 import { KungFuPandaProfile, KUNG_FU_PANDA_PERSONAS, PersonaProfile } from "@/components/profile/KungFuPandaProfile";
 import { CampusEntity, ActiveLayerId } from "@/types/digital-twin";
 import { DigitalTwinApi } from "@/services/api";
@@ -17,8 +22,9 @@ function TwinContent() {
   const searchParams = useSearchParams();
   const entityParam = searchParams.get("entity");
 
-  const [currentPersona, setCurrentPersona] = useState<PersonaProfile>(KUNG_FU_PANDA_PERSONAS[0]); // Master Oogway
+  const [currentPersona, setCurrentPersona] = useState<PersonaProfile>(KUNG_FU_PANDA_PERSONAS[2]); // Master Tigress (Facility Manager)
   const [currentFloor, setCurrentFloor] = useState<string>("FLOOR-1");
+  const [twinViewMode, setTwinViewMode] = useState<"CAMPUS_3D" | "FLOORPLAN">("CAMPUS_3D");
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(entityParam || "LAB-01-EE");
   const [activeLayers, setActiveLayers] = useState<Set<ActiveLayerId>>(
     new Set<ActiveLayerId>(["OPERATIONAL_STATUS", "ELECTRICAL_GRID", "NETWORK_TOPOLOGY"])
@@ -30,6 +36,8 @@ function TwinContent() {
   const [simulationActive, setSimulationActive] = useState(false);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [showCinematicReveal, setShowCinematicReveal] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isSimOpen, setIsSimOpen] = useState(false);
 
@@ -68,25 +76,69 @@ function TwinContent() {
         onSelectEntity={setSelectedEntityId}
         activeWorkspace="TWIN"
         onSelectWorkspace={(ws) => {
-          if (ws === "COMMAND") router.push("/command");
-          else if (ws === "RESPONSE") router.push("/response");
-          else router.push("/twin");
+          if (ws === "COMMAND") {
+            if (typeof window !== "undefined" && window.location.port !== "3000") {
+              window.location.href = "http://localhost:3000";
+            } else {
+              router.push("/command");
+            }
+          } else if (ws === "RESPONSE") {
+            if (typeof window !== "undefined" && window.location.port !== "3002") {
+              window.location.href = "http://localhost:3002";
+            } else {
+              router.push("/response");
+            }
+          } else {
+            router.push("/twin");
+          }
         }}
         onOpenReportModal={() => setIsReportOpen(true)}
-        onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenProfile={() => setIsLoginOpen(true)}
         currentPersona={currentPersona}
+        onReplayIntro={() => setShowCinematicReveal(true)}
+        twinViewMode={twinViewMode}
+        onToggleTwinView={setTwinViewMode}
       />
 
       <div className="flex flex-1 w-full h-full overflow-hidden relative min-h-0 min-w-0">
+        {/* Left Tool Rail: Floor Isolation (G, L1, L2, L3) & Layer Toggles */}
+        <ToolRail
+          currentFloor={currentFloor}
+          onSelectFloor={setCurrentFloor}
+          activeLayers={activeLayers}
+          onToggleLayer={handleToggleLayer}
+        />
+
+        {/* Center: Authoritative Spatial Viewport (3D Interactive Model or 2D CAD Floor Plan) */}
         <main className="flex-1 flex flex-col h-full overflow-hidden relative min-h-0 min-w-0">
-          <CampusCanvas3D
-            selectedEntityId={selectedEntityId}
-            onSelectEntity={setSelectedEntityId}
-            incidentAffectedIds={incidentAffectedIds}
-            simulationActive={simulationActive}
-          />
+          <div className="flex-1 w-full h-full relative overflow-hidden min-h-0 min-w-0">
+            {twinViewMode === "CAMPUS_3D" ? (
+              <CampusCanvas3D
+                selectedEntityId={selectedEntityId}
+                onSelectEntity={setSelectedEntityId}
+                incidentAffectedIds={incidentAffectedIds}
+                simulationActive={simulationActive}
+                currentFloor={currentFloor}
+                onSelectFloor={setCurrentFloor}
+              />
+            ) : (
+              <FloorPlanCanvas
+                floorData={CAMPUS_FLOORS[currentFloor] || CAMPUS_FLOORS["FLOOR-1"]}
+                activeLayers={activeLayers}
+                selectedEntityId={selectedEntityId}
+                onSelectEntity={setSelectedEntityId}
+                entityMap={entityMap}
+                incidentAffectedIds={incidentAffectedIds}
+                simulationActive={simulationActive}
+              />
+            )}
+          </div>
+
+          {/* Contextual Telemetry Timeline */}
+          <TelemetryTimeline selectedEntityId={selectedEntityId} />
         </main>
 
+        {/* Right: Compact Collapsible Inspector */}
         {selectedEntityId && (
           <EntityInspector
             entityId={selectedEntityId}
@@ -94,11 +146,35 @@ function TwinContent() {
             entityMap={entityMap}
             onSelectEntity={setSelectedEntityId}
             onInitiateWorkOrder={(entId) => {
-              router.push(`/response?target=${encodeURIComponent(entId)}`);
+              if (typeof window !== "undefined" && window.location.port !== "3002") {
+                window.location.href = `http://localhost:3002/response?target=${encodeURIComponent(entId)}`;
+              } else {
+                router.push(`/response?target=${encodeURIComponent(entId)}`);
+              }
             }}
           />
         )}
       </div>
+
+      {/* Cinematic Digital Twin Campus Reveal Overlay */}
+      {showCinematicReveal && (
+        <CinematicIntro
+          onEnter={() => setShowCinematicReveal(false)}
+          onSkip={() => setShowCinematicReveal(false)}
+        />
+      )}
+
+      {/* Dynamic Glassmorphism Zero-Trust Login Modal */}
+      <GlassLoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        defaultRole="FACILITY_MANAGER"
+        appTitle="OMNIS-X TWIN — SPATIAL ENGINEERING ACCESS"
+        onLoginSuccess={(persona) => {
+          setCurrentPersona(persona);
+          setIsLoginOpen(false);
+        }}
+      />
 
       <ReportIncidentModal
         isOpen={isReportOpen}

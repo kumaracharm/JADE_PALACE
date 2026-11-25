@@ -1,7 +1,9 @@
 """
 Incident Lifecycle, Analysis, and Coordination API Endpoints.
 """
+from datetime import datetime
 from typing import List, Optional
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from backend.database import get_db
@@ -262,6 +264,68 @@ def create_work_order_for_incident(
         ip_address=client_ip,
     )
     return wo
+
+
+class WorkflowStepUpdate(BaseModel):
+    step: str
+    note: Optional[str] = None
+    alternative_room: Optional[str] = None
+    assigned_to: Optional[str] = None
+    acknowledged: Optional[bool] = None
+    clearance_requested: Optional[bool] = None
+
+
+@router.post("/{incident_id}/workflow-step", response_model=IncidentRead)
+def advance_workflow_step(
+    incident_id: str,
+    step_in: WorkflowStepUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
+):
+    """
+    Records role-specific workflow milestones (HOD Academic Review, Faculty Task Coordination).
+    Persists updates directly into incident metadata and the immutable audit trail.
+    """
+    incident = db.query(IncidentModel).filter_by(incident_id=incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found.")
+
+    meta = dict(incident.metadata_json or {})
+    if step_in.step == "HOD_REVIEW":
+        meta["hod_review"] = {
+            "reviewed_by": current_user.user_id,
+            "alternative_room": step_in.alternative_room or "CR-201",
+            "academic_impact_note": step_in.note or "Occupied classroom hazard. Practical session relocated.",
+            "escalated_to_facility": True,
+            "timestamp": str(datetime.utcnow()),
+        }
+        incident.status = "TRIAGED"
+    elif step_in.step == "FACULTY_COORDINATION":
+        meta["faculty_coordination"] = {
+            "faculty_id": current_user.user_id,
+            "acknowledged": step_in.acknowledged if step_in.acknowledged is not None else True,
+            "progress_message": step_in.note or "Class relocated to CR-201. Awaiting facility team clearance.",
+            "clearance_requested": step_in.clearance_requested if step_in.clearance_requested is not None else True,
+            "timestamp": str(datetime.utcnow()),
+        }
+        incident.status = "INVESTIGATING"
+
+    incident.metadata_json = meta
+    db.commit()
+    db.refresh(incident)
+
+    client_ip = request.client.host if (request and request.client) else None
+    audit_service.log_action(
+        db=db,
+        action=f"WORKFLOW_STEP_{step_in.step}",
+        user_id=current_user.user_id,
+        entity_type="INCIDENT",
+        entity_id=incident_id,
+        details=f"Step: {step_in.step}, Note: {step_in.note}",
+        ip_address=client_ip,
+    )
+    return incident
 
 
 @router.post("/{incident_id}/verify", response_model=IncidentRead)

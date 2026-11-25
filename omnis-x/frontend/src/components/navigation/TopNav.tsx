@@ -28,6 +28,8 @@ interface TopNavProps {
   onOpenProfile?: () => void;
   currentPersona?: PersonaProfile;
   onReplayIntro?: () => void;
+  twinViewMode?: "CAMPUS_3D" | "FLOORPLAN";
+  onToggleTwinView?: (mode: "CAMPUS_3D" | "FLOORPLAN") => void;
 }
 
 export function TopNav({
@@ -43,6 +45,8 @@ export function TopNav({
   onOpenProfile,
   currentPersona = KUNG_FU_PANDA_PERSONAS[0],
   onReplayIntro,
+  twinViewMode = "CAMPUS_3D",
+  onToggleTwinView,
 }: TopNavProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -58,9 +62,11 @@ export function TopNav({
     : [];
 
   const floorLabels: Record<string, string> = {
+    all: "All Campus Levels",
     "FLOOR-G": "Ground Floor (Utility & Core)",
     "FLOOR-1": "Level 1 (Research Labs)",
     "FLOOR-2": "Level 2 (Classrooms & Auditorium)",
+    "FLOOR-3": "Level 3 (Server Room & Rooftop)",
   };
 
   return (
@@ -161,8 +167,36 @@ export function TopNav({
         )}
       </div>
 
-      {/* Right Controls: Three-Dashboard Workspace Switcher, Report Button, Simulation, Profile */}
+      {/* Right Controls: Three-Dashboard Workspace Switcher, View Mode, Report Button, Simulation, Profile */}
       <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+        {/* Spatial 2D vs Campus 3D View Switcher for Twin */}
+        {activeWorkspace === "TWIN" && onToggleTwinView && (
+          <div className="flex bg-[#191B22] p-0.5 rounded-lg border border-[#2D303B] flex-shrink-0">
+            <button
+              onClick={() => onToggleTwinView("FLOORPLAN")}
+              className={`px-2 sm:px-2.5 py-1 text-xs font-medium rounded transition-all font-mono ${
+                twinViewMode === "FLOORPLAN"
+                  ? "bg-[#D4AF37] text-[#121316] font-bold shadow-md shadow-[#D4AF37]/20"
+                  : "text-[#9D8EB5] hover:text-[#E2E1E6]"
+              }`}
+              title="Architectural 2D CAD Floor Plan"
+            >
+              Spatial 2D
+            </button>
+            <button
+              onClick={() => onToggleTwinView("CAMPUS_3D")}
+              className={`px-2 sm:px-2.5 py-1 text-xs font-medium rounded transition-all font-mono ${
+                twinViewMode === "CAMPUS_3D"
+                  ? "bg-[#D4AF37] text-[#121316] font-bold shadow-md shadow-[#D4AF37]/20"
+                  : "text-[#9D8EB5] hover:text-[#E2E1E6]"
+              }`}
+              title="Interactive 3D Digital Twin Model"
+            >
+              Campus 3D
+            </button>
+          </div>
+        )}
+
         {/* Workspace Switcher: Command vs 3D Twin vs Response */}
         <div className="flex bg-[#191B22] p-0.5 rounded-lg border border-[#2D303B] flex-shrink-0">
           <button
@@ -214,7 +248,7 @@ export function TopNav({
             title="Play Cinematic 3D Intro"
           >
             <Film className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span className="hidden xl:inline">Cinematic</span>
+            <span className="hidden xl:inline">Cinematic Intro</span>
           </button>
         )}
 
@@ -245,9 +279,17 @@ export function TopNav({
           title="Switch Institutional Persona / View RBAC Scope"
         >
           <div
-            className={`w-7 h-7 rounded-full bg-gradient-to-br ${currentPersona.avatarGradient} border border-[#D4AF37]/50 flex items-center justify-center text-white text-[10px] font-bold shadow flex-shrink-0`}
+            className={`w-7 h-7 rounded-full bg-gradient-to-br ${currentPersona.avatarGradient} border border-[#D4AF37]/50 overflow-hidden flex items-center justify-center text-white text-[10px] font-bold shadow flex-shrink-0`}
           >
-            {currentPersona.initials}
+            {currentPersona.photoUrl ? (
+              <img
+                src={currentPersona.photoUrl}
+                alt={currentPersona.characterName}
+                className="w-full h-full object-cover object-center"
+              />
+            ) : (
+              currentPersona.initials
+            )}
           </div>
           <div className="hidden xl:block text-left flex-shrink-0">
             <div className="text-[11px] font-bold text-[#E2E1E6] truncate max-w-[110px]">

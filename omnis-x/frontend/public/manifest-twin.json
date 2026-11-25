@@ -1,0 +1,24 @@
+{
+  "name": "OMNIS-X TWIN — 3D Cyber-Physical Campus Twin",
+  "short_name": "OMNIS-TWIN",
+  "description": "High-Performance 3D Digital Twin, Multi-Level Spatial Slicing, and Physical Asset Telemetry",
+  "start_url": "http://localhost:3001/",
+  "display": "standalone",
+  "background_color": "#0E0F12",
+  "theme_color": "#0E0F12",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/pfp/TIGERESS.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pfp/TIGERESS.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

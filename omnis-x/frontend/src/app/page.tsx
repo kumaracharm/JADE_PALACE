@@ -8,6 +8,9 @@ import { EntityInspector } from "@/components/inspector/EntityInspector";
 import { TelemetryTimeline } from "@/components/timeline/TelemetryTimeline";
 import { SimulationPanel } from "@/components/simulation/SimulationPanel";
 import { CinematicIntro } from "@/components/cinematic/CinematicIntro";
+import { PaperPlaneLaunch } from "@/components/landing/PaperPlaneLaunch";
+import { ThunderEvent } from "@/components/landing/ThunderEvent";
+import { GlassLoginModal } from "@/components/auth/GlassLoginModal";
 import { CommandWorkspace } from "@/components/command/CommandWorkspace";
 import { ResponseWorkspace } from "@/components/response/ResponseWorkspace";
 import { ReportIncidentModal } from "@/components/reporting/ReportIncidentModal";
@@ -177,8 +180,16 @@ export default function DigitalTwinExplorerPage() {
     setIncidentAffectedIds(new Set());
   };
 
-  // If Cinematic Intro is active, render full-screen immersive intro
+  // Dynamic Glassmorphism Login State
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+
+  // If opening animation is triggered, render application's distinct cinematic entry
   if (showIntro) {
+    if (activeWorkspace === "COMMAND") {
+      return <PaperPlaneLaunch onComplete={() => setShowIntro(false)} />;
+    } else if (activeWorkspace === "RESPONSE") {
+      return <ThunderEvent onComplete={() => setShowIntro(false)} />;
+    }
     return (
       <CinematicIntro
         onEnter={() => setShowIntro(false)}
@@ -201,9 +212,29 @@ export default function DigitalTwinExplorerPage() {
           setActiveWorkspace("TWIN");
         }}
         activeWorkspace={activeWorkspace}
-        onSelectWorkspace={setActiveWorkspace}
+        onSelectWorkspace={(ws) => {
+          if (ws === "COMMAND") {
+            if (typeof window !== "undefined" && window.location.port !== "3000") {
+              window.location.href = "http://localhost:3000";
+            } else {
+              setActiveWorkspace("COMMAND");
+            }
+          } else if (ws === "TWIN") {
+            if (typeof window !== "undefined" && window.location.port !== "3001") {
+              window.location.href = "http://localhost:3001";
+            } else {
+              setActiveWorkspace("TWIN");
+            }
+          } else if (ws === "RESPONSE") {
+            if (typeof window !== "undefined" && window.location.port !== "3002") {
+              window.location.href = "http://localhost:3002";
+            } else {
+              setActiveWorkspace("RESPONSE");
+            }
+          }
+        }}
         onOpenReportModal={() => setIsReportModalOpen(true)}
-        onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenProfile={() => setIsLoginModalOpen(true)}
         currentPersona={currentPersona}
         onReplayIntro={() => setShowIntro(true)}
       />
@@ -250,6 +281,8 @@ export default function DigitalTwinExplorerPage() {
                   onSelectEntity={setSelectedEntityId}
                   incidentAffectedIds={incidentAffectedIds}
                   simulationActive={simulationActive}
+                  currentFloor={currentFloor}
+                  onSelectFloor={setCurrentFloor}
                 />
               </div>
 
@@ -288,6 +321,30 @@ export default function DigitalTwinExplorerPage() {
         onClose={() => setIsReportModalOpen(false)}
         onIncidentReported={(inc) => {
           setTargetIncidentId(inc.incident_id);
+        }}
+      />
+
+      {/* 4.5 DYNAMIC GLASSMORPHISM LOGIN MODAL */}
+      <GlassLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        defaultRole={
+          activeWorkspace === "TWIN"
+            ? "FACILITY_MANAGER"
+            : activeWorkspace === "RESPONSE"
+            ? "HOD"
+            : "PRINCIPAL"
+        }
+        appTitle={
+          activeWorkspace === "TWIN"
+            ? "OMNIS-X TWIN — SPATIAL ENGINEERING ACCESS"
+            : activeWorkspace === "RESPONSE"
+            ? "OMNIS-X RESPONSE — TACTICAL RECOVERY ACCESS"
+            : "OMNIS-X COMMAND — EXECUTIVE DIRECTORATE ACCESS"
+        }
+        onLoginSuccess={(persona) => {
+          setCurrentPersona(persona);
+          setIsLoginModalOpen(false);
         }}
       />
 

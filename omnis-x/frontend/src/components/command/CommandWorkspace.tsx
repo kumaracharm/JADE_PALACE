@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { DigitalTwinApi } from "@/services/api";
 import { CampusEntity, Incident } from "@/types/digital-twin";
+import { OperationalFlowGraph } from "../flow/OperationalFlowGraph";
+import { RoleDemoWorkflow } from "../workflow/RoleDemoWorkflow";
 
 interface CommandWorkspaceProps {
   onNavigateToTwin: (entityId?: string) => void;
@@ -264,6 +266,12 @@ export function CommandWorkspace({
         </div>
       </div>
 
+      {/* 2.5 OPERATIONAL DEPENDENCY & ENERGY FLOW TOPOLOGY GRAPH */}
+      <OperationalFlowGraph
+        onSelectEntity={(id) => onNavigateToTwin(id)}
+        incidentEntityId={incidents.length > 0 ? (incidents[0] as any).root_cause_entity_id || "FEEDER-LABS-F1" : null}
+      />
+
       {/* 3. MIDDLE SECTION: SINGLE POINT OF FAILURE (SPOF) & ACTIVE INCIDENTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* SPOF Discovery Table */}
@@ -391,6 +399,12 @@ export function CommandWorkspace({
         </div>
       </div>
 
+      {/* 3.5 END-TO-END CLASSROOM ROLE DEMONSTRATION WORKFLOW (STUDENT -> HOD -> FACULTY) */}
+      <RoleDemoWorkflow
+        onNavigateToTwin={onNavigateToTwin}
+        onNavigateToResponse={onNavigateToResponse}
+      />
+
       {/* 4. BOTTOM SECTION: ML LAB LIVE PREDICTION SUITE */}
       <div className="p-4 rounded-xl bg-[#14151A] border border-[#252833] shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#252833] gap-2">
@@ -400,9 +414,14 @@ export function CommandWorkspace({
               Trained ML Intelligence Lab (4 Live scikit-learn Models)
             </h2>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#9D8EB5]/20 text-[#BDB0D3] border border-[#9D8EB5]/40 font-bold">
-            PROVENANCE: SYNTHETIC DEMONSTRATION
-          </span>
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
+              DEVICE: CPU (CUDA / RTX 3050 UNAVAILABLE)
+            </span>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#9D8EB5]/20 text-[#BDB0D3] border border-[#9D8EB5]/40 font-bold">
+              PROVENANCE: SYNTHETIC DEMONSTRATION
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">

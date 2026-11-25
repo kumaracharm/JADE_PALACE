@@ -7,20 +7,24 @@ import { TopNav } from "@/components/navigation/TopNav";
 import { ReportIncidentModal } from "@/components/reporting/ReportIncidentModal";
 import { SimulationPanel } from "@/components/simulation/SimulationPanel";
 import { KungFuPandaProfile, KUNG_FU_PANDA_PERSONAS, PersonaProfile } from "@/components/profile/KungFuPandaProfile";
+import { ThunderEvent } from "@/components/landing/ThunderEvent";
+import { GlassLoginModal } from "@/components/auth/GlassLoginModal";
 
 function ResponseContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const incidentParam = searchParams.get("incident");
 
-  const [currentPersona, setCurrentPersona] = useState<PersonaProfile>(KUNG_FU_PANDA_PERSONAS[0]); // Master Oogway
+  const [currentPersona, setCurrentPersona] = useState<PersonaProfile>(KUNG_FU_PANDA_PERSONAS[1]); // Master Shifu (HOD)
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [showThunder, setShowThunder] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isSimOpen, setIsSimOpen] = useState(false);
   const [simulationActive, setSimulationActive] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#0E0F12] text-[#E2E1E6] font-sans select-none">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#0A0B0E] text-[#E2E1E6] font-sans select-none">
       <TopNav
         currentFloor="FLOOR-1"
         onSelectFloor={() => {}}
@@ -30,13 +34,26 @@ function ResponseContent() {
         onSelectEntity={(id) => router.push(`/twin?entity=${encodeURIComponent(id)}`)}
         activeWorkspace="RESPONSE"
         onSelectWorkspace={(ws) => {
-          if (ws === "COMMAND") router.push("/command");
-          else if (ws === "TWIN") router.push("/twin");
-          else router.push("/response");
+          if (ws === "COMMAND") {
+            if (typeof window !== "undefined" && window.location.port !== "3000") {
+              window.location.href = "http://localhost:3000";
+            } else {
+              router.push("/command");
+            }
+          } else if (ws === "TWIN") {
+            if (typeof window !== "undefined" && window.location.port !== "3001") {
+              window.location.href = "http://localhost:3001";
+            } else {
+              router.push("/twin");
+            }
+          } else {
+            router.push("/response");
+          }
         }}
         onOpenReportModal={() => setIsReportOpen(true)}
-        onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenProfile={() => setIsLoginOpen(true)}
         currentPersona={currentPersona}
+        onReplayIntro={() => setShowThunder(true)}
       />
 
       <main className="flex-1 w-full overflow-hidden relative">
@@ -48,6 +65,23 @@ function ResponseContent() {
           }}
         />
       </main>
+
+      {/* Controlled Thunder & Electrical Pulse Cinematic Landing */}
+      {showThunder && (
+        <ThunderEvent onComplete={() => setShowThunder(false)} />
+      )}
+
+      {/* Dynamic Glassmorphism Zero-Trust Login Modal */}
+      <GlassLoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        defaultRole="HOD"
+        appTitle="OMNIS-X RESPONSE — TACTICAL ACCESS"
+        onLoginSuccess={(persona) => {
+          setCurrentPersona(persona);
+          setIsLoginOpen(false);
+        }}
+      />
 
       <ReportIncidentModal
         isOpen={isReportOpen}
@@ -76,7 +110,7 @@ function ResponseContent() {
 
 export default function ResponsePage() {
   return (
-    <Suspense fallback={<div className="w-screen h-screen bg-[#0E0F12]" />}>
+    <Suspense fallback={<div className="w-screen h-screen bg-[#0A0B0E]" />}>
       <ResponseContent />
     </Suspense>
   );

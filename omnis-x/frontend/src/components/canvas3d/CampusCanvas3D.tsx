@@ -32,6 +32,25 @@ interface CampusCanvas3DProps {
   onSelectEntity: (entityId: string) => void;
   incidentAffectedIds: Set<string>;
   simulationActive: boolean;
+  currentFloor?: string;
+  onSelectFloor?: (floorId: string) => void;
+}
+
+function floorIdToLayerId(floorId?: string): CampusLayerId {
+  if (!floorId || floorId === "all") return "all";
+  if (floorId === "FLOOR-G") return "ground";
+  if (floorId === "FLOOR-1") return "floor1";
+  if (floorId === "FLOOR-2") return "floor2";
+  if (floorId === "FLOOR-3") return "roof";
+  return "all";
+}
+
+function layerIdToFloorId(layerId: CampusLayerId): string {
+  if (layerId === "ground") return "FLOOR-G";
+  if (layerId === "floor1") return "FLOOR-1";
+  if (layerId === "floor2") return "FLOOR-2";
+  if (layerId === "roof") return "FLOOR-3";
+  return "all";
 }
 
 export function CampusCanvas3D({
@@ -39,11 +58,15 @@ export function CampusCanvas3D({
   onSelectEntity,
   incidentAffectedIds,
   simulationActive,
+  currentFloor,
+  onSelectFloor,
 }: CampusCanvas3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Architectural View State
-  const [selectedLayerId, setSelectedLayerId] = useState<CampusLayerId>("all");
+  // Architectural View State - synchronized with parent currentFloor
+  const [selectedLayerId, setSelectedLayerId] = useState<CampusLayerId>(
+    floorIdToLayerId(currentFloor)
+  );
   const [explodedDistance, setExplodedDistance] = useState<number>(3.0);
   const [showPower, setShowPower] = useState<boolean>(true);
   const [showData, setShowData] = useState<boolean>(true);
@@ -57,6 +80,20 @@ export function CampusCanvas3D({
     y: number;
     isIncident: boolean;
   }[]>([]);
+
+  // Synchronize when currentFloor prop changes
+  useEffect(() => {
+    if (currentFloor) {
+      setSelectedLayerId(floorIdToLayerId(currentFloor));
+    }
+  }, [currentFloor]);
+
+  const handleSelectLayer = (layerId: CampusLayerId) => {
+    setSelectedLayerId(layerId);
+    if (onSelectFloor) {
+      onSelectFloor(layerIdToFloorId(layerId));
+    }
+  };
 
   // Keep ref of latest props/state for animation loop & raycaster
   const stateRef = useRef({
@@ -1384,7 +1421,7 @@ export function CampusCanvas3D({
         {/* Floor Level Selector Pills */}
         <div className="flex items-center space-x-1.5 p-1 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl">
           <button
-            onClick={() => setSelectedLayerId("all")}
+            onClick={() => handleSelectLayer("all")}
             className={`px-2.5 py-1 text-xs font-mono rounded transition-all ${
               selectedLayerId === "all"
                 ? "bg-[#D4AF37] text-[#121316] font-bold shadow"
@@ -1396,10 +1433,10 @@ export function CampusCanvas3D({
           {CAMPUS_3D_LAYERS.map((layer) => (
             <button
               key={layer.id}
-              onClick={() => setSelectedLayerId(layer.id)}
+              onClick={() => handleSelectLayer(layer.id)}
               className={`px-2 py-1 text-xs font-mono rounded transition-all ${
                 selectedLayerId === layer.id
-                  ? "bg-[#9D8EB5] text-[#121316] font-bold shadow"
+                  ? "bg-[#D4AF37] text-[#121316] font-bold shadow"
                   : "text-[#8A8594] hover:text-[#E2E1E6]"
               }`}
             >
@@ -1507,9 +1544,9 @@ export function CampusCanvas3D({
         </div>
       </div>
 
-      {/* 4. COMPACT FLOATING INSPECTION POPOVER WHEN AN ITEM IS SELECTED */}
-      {selectedRoom && (
-        <div className="absolute top-14 right-3 p-3 rounded-lg bg-[#14151A]/95 border border-[#D4AF37]/50 backdrop-blur-md pointer-events-auto shadow-2xl max-w-[260px] z-20 font-mono text-xs">
+      {/* 4. COMPACT FLOATING INSPECTION POPOVER WHEN AN ITEM IS SELECTED (Positioned safely top-left under HUD) */}
+      {selectedRoom && !selectedEntityId && (
+        <div className="absolute top-14 left-3 p-3 rounded-lg bg-[#14151A]/95 border border-[#D4AF37]/50 backdrop-blur-md pointer-events-auto shadow-2xl max-w-[260px] z-20 font-mono text-xs">
           <div className="flex items-center justify-between pb-1.5 border-b border-[#252833] mb-2">
             <span className="text-[#FFFFFF] font-bold truncate max-w-[170px]">{selectedRoom.name}</span>
             <button

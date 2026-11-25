@@ -26,8 +26,10 @@ export function ToolRail({
   onToggleLayer,
 }: ToolRailProps) {
   const floors = [
+    { id: "all", label: "ALL", full: "All Campus Levels" },
+    { id: "FLOOR-3", label: "L3", full: "Level 3: Server Room & Rooftop Solar" },
     { id: "FLOOR-2", label: "L2", full: "Level 2: Classrooms & Auditorium" },
-    { id: "FLOOR-1", label: "L1", full: "Level 1: Laboratories" },
+    { id: "FLOOR-1", label: "L1", full: "Level 1: Research Laboratories" },
     { id: "FLOOR-G", label: "G", full: "Ground: Utilities & Core MDF" },
   ];
 

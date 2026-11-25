@@ -28,6 +28,7 @@ export interface PersonaProfile {
   permissions: string[];
   avatarGradient: string;
   initials: string;
+  photoUrl?: string;
   status: "ACTIVE_VERIFIED" | "SUSPENDED" | "STANDBY";
 }
 
@@ -50,6 +51,7 @@ export const KUNG_FU_PANDA_PERSONAS: PersonaProfile[] = [
     ],
     avatarGradient: "from-emerald-600 via-teal-700 to-emerald-950",
     initials: "MO",
+    photoUrl: "/pfp/OOGWAY.jpeg",
     status: "ACTIVE_VERIFIED",
   },
   {
@@ -69,6 +71,7 @@ export const KUNG_FU_PANDA_PERSONAS: PersonaProfile[] = [
     ],
     avatarGradient: "from-amber-600 via-yellow-700 to-amber-950",
     initials: "MS",
+    photoUrl: "/pfp/SHIFU.jpeg",
     status: "ACTIVE_VERIFIED",
   },
   {
@@ -88,6 +91,7 @@ export const KUNG_FU_PANDA_PERSONAS: PersonaProfile[] = [
     ],
     avatarGradient: "from-orange-600 via-amber-800 to-stone-900",
     initials: "TG",
+    photoUrl: "/pfp/TIGERESS.jpeg",
     status: "ACTIVE_VERIFIED",
   },
   {
@@ -107,6 +111,7 @@ export const KUNG_FU_PANDA_PERSONAS: PersonaProfile[] = [
     ],
     avatarGradient: "from-yellow-600 via-amber-700 to-stone-900",
     initials: "MK",
+    photoUrl: "/pfp/MONKEY.jpeg",
     status: "ACTIVE_VERIFIED",
   },
   {
@@ -143,6 +148,7 @@ export const KUNG_FU_PANDA_PERSONAS: PersonaProfile[] = [
     ],
     avatarGradient: "from-neutral-700 via-zinc-800 to-black",
     initials: "PO",
+    photoUrl: "/pfp/POO.jpeg",
     status: "ACTIVE_VERIFIED",
   },
   {
@@ -157,6 +163,7 @@ export const KUNG_FU_PANDA_PERSONAS: PersonaProfile[] = [
     permissions: ["DISPATCH_WORK_ORDERS", "LOG_MAINTENANCE"],
     avatarGradient: "from-lime-600 via-emerald-800 to-neutral-900",
     initials: "MT",
+    photoUrl: "/pfp/MANTIS.jpeg",
     status: "ACTIVE_VERIFIED",
   },
   {
@@ -171,6 +178,45 @@ export const KUNG_FU_PANDA_PERSONAS: PersonaProfile[] = [
     permissions: ["SUBMIT_INCIDENT_REPORT", "MONITOR_CYBER_TELEMETRY"],
     avatarGradient: "from-sky-600 via-indigo-800 to-neutral-900",
     initials: "CR",
+    photoUrl: "/pfp/CRANE.jpeg",
+    status: "ACTIVE_VERIFIED",
+  },
+  {
+    id: "ping",
+    characterName: "Mr. Ping",
+    titleQuote: "We are noodle folk. Broth runs through our veins! Sustaining campus energy and morale.",
+    role: "FACULTY",
+    displayRole: "Campus Services, Logistics & Hospitality Director",
+    userId: "USR-OPS-PING",
+    department: "Campus Student Services & Auxiliary Logistics",
+    accessScope: "Student Dining Facilities, Logistics Bay, Supplies Depot",
+    permissions: [
+      "SUBMIT_INCIDENT_REPORT",
+      "VIEW_CAMPUS_STATUS",
+      "LOGISTICS_DISPATCH",
+    ],
+    avatarGradient: "from-amber-700 via-orange-900 to-stone-950",
+    initials: "MP",
+    photoUrl: "/pfp/Mr . Ping.jpeg",
+    status: "ACTIVE_VERIFIED",
+  },
+  {
+    id: "zhen",
+    characterName: "Zhen",
+    titleQuote: "Quick fingers, street-smart network debugging, and agile troubleshooting.",
+    role: "IT_ADMIN",
+    displayRole: "Junior Network Systems & Edge Diagnostics Specialist",
+    userId: "USR-IT-ZHEN",
+    department: "Campus Cyber-Infrastructure — Field Operations",
+    accessScope: "IDF Cabinets, Wi-Fi 6 Access Points, Laboratory Ethernet Drops",
+    permissions: [
+      "MONITOR_CYBER_TELEMETRY",
+      "REBOOT_EDGE_SWITCHES",
+      "SUBMIT_INCIDENT_REPORT",
+    ],
+    avatarGradient: "from-violet-700 via-purple-900 to-slate-950",
+    initials: "ZH",
+    photoUrl: "/pfp/ZHEN.jpeg",
     status: "ACTIVE_VERIFIED",
   },
 ];
@@ -248,9 +294,17 @@ export function KungFuPandaProfile({
                   }`}
                 >
                   <div
-                    className={`w-7 h-7 rounded-full bg-gradient-to-br ${p.avatarGradient} flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 shadow`}
+                    className={`w-7 h-7 rounded-full bg-gradient-to-br ${p.avatarGradient} overflow-hidden flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 shadow border border-white/10`}
                   >
-                    {p.initials}
+                    {p.photoUrl ? (
+                      <img
+                        src={p.photoUrl}
+                        alt={p.characterName}
+                        className="w-full h-full object-cover object-center"
+                      />
+                    ) : (
+                      p.initials
+                    )}
                   </div>
                   <div className="truncate flex-1 min-w-0">
                     <div className="font-bold text-xs truncate">{p.characterName}</div>
@@ -266,9 +320,17 @@ export function KungFuPandaProfile({
             {/* Character Banner */}
             <div className="flex items-center space-x-3.5 pb-4 border-b border-[#252833]">
               <div
-                className={`w-14 h-14 rounded-xl bg-gradient-to-br ${active.avatarGradient} flex items-center justify-center text-white font-black text-lg shadow-xl shadow-black/50 border border-white/20`}
+                className={`w-14 h-14 rounded-xl bg-gradient-to-br ${active.avatarGradient} overflow-hidden flex items-center justify-center text-white font-black text-lg shadow-xl shadow-black/50 border border-white/20 flex-shrink-0`}
               >
-                {active.initials}
+                {active.photoUrl ? (
+                  <img
+                    src={active.photoUrl}
+                    alt={active.characterName}
+                    className="w-full h-full object-cover object-center"
+                  />
+                ) : (
+                  active.initials
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
