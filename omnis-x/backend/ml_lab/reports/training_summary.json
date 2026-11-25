@@ -1,0 +1,38 @@
+{
+  "status": "COMPLETED",
+  "models_trained": 4,
+  "summary_table": [
+    {
+      "model": "Equipment Failure",
+      "type": "Classification",
+      "algorithm": "RandomForestClassifier (Equipment Failure)",
+      "metric_1": "Accuracy: 0.9113",
+      "metric_2": "F1-Weighted: 0.9131",
+      "metric_3": "ROC-AUC: 0.9773"
+    },
+    {
+      "model": "IT Infrastructure",
+      "type": "Classification",
+      "algorithm": "RandomForestClassifier (IT Anomaly)",
+      "metric_1": "Accuracy: 1.0",
+      "metric_2": "F1-Weighted: 1.0",
+      "metric_3": "ROC-AUC: 1.0"
+    },
+    {
+      "model": "Transport Delay",
+      "type": "Regression",
+      "algorithm": "HistGradientBoostingRegressor (Transport Delay)",
+      "metric_1": "MAE: 2.0437 min",
+      "metric_2": "RMSE: 2.5543 min",
+      "metric_3": "R\u00b2: 0.843"
+    },
+    {
+      "model": "Electrical Grid",
+      "type": "Classification",
+      "algorithm": "RandomForestClassifier (Electrical Grid)",
+      "metric_1": "Accuracy: 1.0",
+      "metric_2": "F1-Weighted: 1.0",
+      "metric_3": "ROC-AUC: 1.0"
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "random_state": 42,
+  "samples_per_dataset": 4000,
+  "datasets": {
+    "equipment_failure": {
+      "file": "equipment_failure.csv",
+      "rows": 4000,
+      "columns": [
+        "equipment_id",
+        "laboratory_id",
+        "temperature_c",
+        "vibration_mm_s",
+        "pressure_bar",
+        "rotational_speed_rpm",
+        "operating_hours",
+        "maintenance_history",
+        "failure_label",
+        "provenance"
+      ],
+      "target": "failure_label",
+      "class_distribution": {
+        "NORMAL": 3009,
+        "WARNING": 868,
+        "CRITICAL_FAILURE": 123
+      }
+    },
+    "it_infrastructure": {
+      "file": "it_infrastructure.csv",
+      "rows": 4000,
+      "columns": [
+        "server_id",
+        "service_id",
+        "cpu_usage",
+        "memory_usage",
+        "network_latency_ms",
+        "packet_loss",
+        "disk_usage",
+        "request_rate",
+        "fault_label",
+        "provenance"
+      ],
+      "target": "fault_label",
+      "class_distribution": {
+        "NORMAL": 3473,
+        "FAULT": 449,
+        "DEGRADED": 78
+      }
+    },
+    "transport_delay": {
+      "file": "transport_delay.csv",
+      "rows": 4000,
+      "columns": [
+        "bus_route_id",
+        "traffic_density",
+        "rainfall",
+        "road_condition",
+        "departure_time",
+        "historical_travel_time",
+        "actual_travel_time",
+        "delay_minutes",
+        "delay_label",
+        "provenance"
+      ],
+      "target_regression": "delay_minutes",
+      "target_classification": "delay_label",
+      "class_distribution": {
+        "MODERATE_DELAY": 2580,
+        "SEVERE_DELAY": 895,
+        "ON_TIME": 525
+      }
+    },
+    "electrical_infrastructure": {
+      "file": "electrical_infrastructure.csv",
+      "rows": 4000,
+      "columns": [
+        "feeder_id",
+        "building_zone",
+        "voltage",
+        "current",
+        "power_load_kw",
+        "transformer_temperature",
+        "power_factor",
+        "abnormal_condition_label",
+        "provenance"
+      ],
+      "target": "abnormal_condition_label",
+      "class_distribution": {
+        "NORMAL": 1736,
+        "WARNING": 1469,
+        "CRITICAL": 795
+      }
+    }
+  }
+}

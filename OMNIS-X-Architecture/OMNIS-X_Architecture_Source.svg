@@ -1,0 +1,704 @@
+<svg viewBox="0 0 1920 1460" width="1920" height="1460" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="omnis-x-arch-title omnis-x-arch-desc">
+  <title id="omnis-x-arch-title">OMNIS-X — Institutional Digital Twin Architecture (Monochrome Blueprint)</title>
+  <desc id="omnis-x-arch-desc">Compact single-structure isometric architecture diagram for OMNIS-X digital twin resilience system in pure black and white.</desc>
+  
+    <defs>
+      <!-- Blueprint drafting grid -->
+      <pattern id="grid-fine" width="30" height="30" patternUnits="userSpaceOnUse">
+        <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255, 255, 255, 0.04)" stroke-width="0.7" />
+      </pattern>
+      <pattern id="grid-major" width="150" height="150" patternUnits="userSpaceOnUse">
+        <rect width="150" height="150" fill="url(#grid-fine)" />
+        <path d="M 150 0 L 0 0 0 150" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+        <circle cx="0" cy="0" r="1.5" fill="rgba(255,255,255,0.2)" />
+      </pattern>
+      <!-- Pure monochrome plane fill -->
+      <linearGradient id="plane-mono-grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#0e131b" stop-opacity="0.9" />
+        <stop offset="100%" stop-color="#080c12" stop-opacity="0.95" />
+      </linearGradient>
+      <!-- Monochrome arrows -->
+      <marker id="arr-white" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ffffff" />
+      </marker>
+      <marker id="arr-gray" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M 0 2 L 7 5 L 0 8 z" fill="#94a3b8" />
+      </marker>
+    </defs>
+
+    <!-- Canvas Background: Pure Deep Charcoal / Black -->
+    <rect width="1920" height="1460" fill="#0A0E14" />
+    <rect width="1920" height="1460" fill="url(#grid-major)" />
+    
+    <!-- HEADER -->
+    <g id="header" transform="translate(60, 25)">
+      <rect x="0" y="0" width="1800" height="85" rx="6" fill="rgba(14, 19, 27, 0.85)" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.2" />
+      
+      <!-- Drafting Corner Marks -->
+      <path d="M -6 0 L 6 0 M 0 -6 L 0 6" stroke="#ffffff" stroke-width="1.2" />
+      <path d="M 1794 0 L 1806 0 M 1800 -6 L 1800 6" stroke="#ffffff" stroke-width="1.2" />
+      <path d="M -6 85 L 6 85 M 0 79 L 0 91" stroke="#ffffff" stroke-width="1.2" />
+      <path d="M 1794 85 L 1806 85 M 1800 79 L 1800 91" stroke="#ffffff" stroke-width="1.2" />
+
+      <text x="25" y="32" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="11" font-weight="600" letter-spacing="0.18em">OMNIS-X // INSTITUTIONAL DIGITAL TWIN ARCHITECTURE</text>
+      <text x="25" y="62" fill="#ffffff" font-family="'Geist', sans-serif" font-size="22" font-weight="600" letter-spacing="-0.02em">Resilience Decision &amp; Autonomous Operations System</text>
+
+      <!-- Compact Legend on Right -->
+      <g transform="translate(1080, 20)">
+        <text x="0" y="14" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="0.12em">FLOW ENCODING:</text>
+        <line x1="110" y1="10" x2="155" y2="10" stroke="#ffffff" stroke-width="2" />
+        <text x="165" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9">Real Telemetry</text>
+
+        <line x1="285" y1="10" x2="330" y2="10" stroke="#ffffff" stroke-width="1.8" stroke-dasharray="2,2" />
+        <text x="340" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9">Reported Data</text>
+
+        <line x1="460" y1="10" x2="505" y2="10" stroke="#ffffff" stroke-width="1.8" stroke-dasharray="5,3" />
+        <text x="515" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9">Synthetic / Est.</text>
+
+        <text x="0" y="38" fill="#64748b" font-family="'Geist Mono', monospace" font-size="9">SYSTEM: 6 TIERS &bull; 7 SPECIALIST ENGINES &bull; ZERO-TRUST GOVERNANCE &bull; CLOSED-LOOP</text>
+      </g>
+    </g>
+    
+    <!-- VERTICAL CORNER TRACE LINES -->
+    <g id="corner-traces">
+      <line x1="400" y1="130" x2="400" y2="1300" stroke="rgba(255, 255, 255, 0.22)" stroke-width="1" stroke-dasharray="4,4" />
+      <line x1="1780" y1="130" x2="1780" y2="1300" stroke="rgba(255, 255, 255, 0.22)" stroke-width="1" stroke-dasharray="4,4" />
+      <line x1="320" y1="270" x2="320" y2="1300" stroke="rgba(255, 255, 255, 0.28)" stroke-width="1.2" stroke-dasharray="4,4" />
+      <line x1="1860" y1="270" x2="1860" y2="1300" stroke="rgba(255, 255, 255, 0.28)" stroke-width="1.2" stroke-dasharray="4,4" />
+    </g>
+    
+        <!-- PLANE BASE: PLANE 06 -->
+        <path d="M 1780 130 L 1860 275 L 1860 285 L 1780 140 Z" fill="#05070a" stroke="rgba(255, 255, 255, 0.12)" stroke-width="0.8" />
+        <path d="M 320 275 L 1860 275 L 1860 285 L 320 285 Z" fill="#080c10" stroke="rgba(255, 255, 255, 0.22)" stroke-width="0.8" />
+        <path d="M 412 130 L 1768 130 Q 1780 130 1782 134 L 1860 271 Q 1860 275 1848 275 L 332 275 Q 320 275 318 271 L 400 134 Q 400 130 412 130 Z" fill="url(#plane-mono-grad)" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" />
+        
+        <!-- Corner L-Brackets -->
+        <path d="M 414 146 L 414 136 L 424 136" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1766 146 L 1766 136 L 1756 136" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 334 259 L 334 269 L 344 269" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1846 259 L 1846 269 L 1836 269" fill="none" stroke="#ffffff" stroke-width="1.2" />
+
+        <!-- Plane Tag -->
+        <g transform="translate(420, 146)">
+          <rect x="0" y="0" width="310" height="24" rx="3" fill="rgba(10, 14, 20, 0.95)" stroke="#ffffff" stroke-width="1" />
+          <text x="10" y="16" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">PLANE 06 &bull; APPLICATION AND CONTROL</text>
+          <text x="325" y="16" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="0.1em">[OPERATIONAL SURFACES]</text>
+        </g>
+        
+    <!-- PLANE 6 CONTENT -->
+    <g id="p6-content" transform="translate(430, 180)">
+      <!-- 1. Command Center -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="310" height="75" rx="5" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" />
+        <text x="14" y="22" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">COMMAND CENTER</text>
+        <text x="14" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">Campus Health &bull; Incident Triage Wall</text>
+        <text x="14" y="60" fill="#64748b" font-family="'Geist Mono', monospace" font-size="9">Active Nodes: 1,420 &bull; 0 Critical</text>
+      </g>
+
+      <!-- 2. Digital Twin Explorer -->
+      <g transform="translate(330, 0)">
+        <rect x="0" y="0" width="310" height="75" rx="5" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" />
+        <text x="14" y="22" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">DIGITAL TWIN EXPLORER</text>
+        <text x="14" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">3D BIM Navigator &bull; Room Drill-Down</text>
+        <text x="14" y="60" fill="#64748b" font-family="'Geist Mono', monospace" font-size="9">Topology Inspector &bull; Sensor Overlays</text>
+      </g>
+
+      <!-- 3. Incident & Intelligence Center -->
+      <g transform="translate(660, 0)">
+        <rect x="0" y="0" width="320" height="75" rx="5" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" />
+        <text x="14" y="22" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">INTELLIGENCE &amp; INCIDENT CENTER</text>
+        <text x="14" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">Automated Playbook Runner &bull; SLA Dispatch</text>
+        <text x="14" y="60" fill="#64748b" font-family="'Geist Mono', monospace" font-size="9">Root-Cause Analysis &bull; Work Orders</text>
+      </g>
+
+      <!-- 4. Student/Staff Portal -->
+      <g transform="translate(1000, 0)">
+        <rect x="0" y="0" width="310" height="75" rx="5" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" />
+        <text x="14" y="22" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">STUDENT / STAFF PORTAL</text>
+        <text x="14" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">Mobile PWA &bull; Incident Reporting &bull; Kiosk</text>
+        <text x="14" y="60" fill="#64748b" font-family="'Geist Mono', monospace" font-size="9">Campus Safety Alerts &bull; Status Tracking</text>
+      </g>
+    </g>
+    
+        <!-- PLANE BASE: PLANE 05 -->
+        <path d="M 1780 315 L 1860 475 L 1860 485 L 1780 325 Z" fill="#05070a" stroke="rgba(255, 255, 255, 0.12)" stroke-width="0.8" />
+        <path d="M 320 475 L 1860 475 L 1860 485 L 320 485 Z" fill="#080c10" stroke="rgba(255, 255, 255, 0.22)" stroke-width="0.8" />
+        <path d="M 412 315 L 1768 315 Q 1780 315 1782 319 L 1860 471 Q 1860 475 1848 475 L 332 475 Q 320 475 318 471 L 400 319 Q 400 315 412 315 Z" fill="url(#plane-mono-grad)" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" />
+        
+        <!-- Corner L-Brackets -->
+        <path d="M 414 331 L 414 321 L 424 321" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1766 331 L 1766 321 L 1756 321" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 334 459 L 334 469 L 344 469" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1846 459 L 1846 469 L 1836 469" fill="none" stroke="#ffffff" stroke-width="1.2" />
+
+        <!-- Plane Tag -->
+        <g transform="translate(420, 331)">
+          <rect x="0" y="0" width="310" height="24" rx="3" fill="rgba(10, 14, 20, 0.95)" stroke="#ffffff" stroke-width="1" />
+          <text x="10" y="16" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">PLANE 05 &bull; INCIDENT AND SIMULATION</text>
+          <text x="325" y="16" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="0.1em">[COUNTERFACTUAL SANDBOX & VERIFICATION]</text>
+        </g>
+        
+    <!-- PLANE 5 CONTENT -->
+    <g id="p5-content" transform="translate(420, 365)">
+      <!-- Zone A: Isolated Shadow Sandbox (Dashed) -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="670" height="90" rx="5" fill="rgba(14, 19, 27, 0.85)" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="4,4" />
+        <text x="14" y="20" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9.5" font-weight="700">[ISOLATED SHADOW SANDBOX &bull; ZERO PRODUCTION IMPACT]</text>
+
+        <!-- Sub-block 1: Failure Injection -->
+        <g transform="translate(15, 30)">
+          <rect x="0" y="0" width="195" height="48" rx="3" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" stroke-width="0.8" />
+          <text x="10" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="600">FAILURE INJECTION</text>
+          <text x="10" y="34" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9">Power, Switch &amp; Chiller Faults</text>
+        </g>
+
+        <!-- Sub-block 2: Cascade Propagation -->
+        <g transform="translate(225, 30)">
+          <rect x="0" y="0" width="205" height="48" rx="3" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" stroke-width="0.8" />
+          <text x="10" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="600">CASCADE SIMULATION</text>
+          <text x="10" y="34" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9">Secondary Overload &amp; Blast Radius</text>
+        </g>
+
+        <!-- Sub-block 3: Impact Assessment -->
+        <g transform="translate(445, 30)">
+          <rect x="0" y="0" width="210" height="48" rx="3" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" stroke-width="0.8" />
+          <text x="10" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="600">IMPACT ASSESSMENT</text>
+          <text x="10" y="34" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9">Downtime &bull; 8 Lectures Displaced</text>
+        </g>
+      </g>
+
+      <!-- Arrow from Sandbox to Optimization -->
+      <path d="M 670 45 L 700 45" stroke="#ffffff" stroke-width="1.5" marker-end="url(#arr-white)" />
+
+      <!-- Zone B: Optimization, Pareto Comparison & Human Approval -->
+      <g transform="translate(705, 0)">
+        <rect x="0" y="0" width="640" height="90" rx="5" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+        
+        <!-- Multi-Plan Generator -->
+        <g transform="translate(15, 20)">
+          <rect x="0" y="0" width="190" height="58" rx="3" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" stroke-width="0.8" />
+          <text x="10" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="600">ALTERNATIVE PLANS</text>
+          <text x="10" y="34" fill="#ffffff" font-family="'Geist', sans-serif" font-size="9">&bull; Plan Alpha (Reroute, 12 min)</text>
+          <text x="10" y="48" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Plan Beta (Virtual) | Gamma</text>
+        </g>
+
+        <!-- Pareto Comparison -->
+        <g transform="translate(220, 20)">
+          <rect x="0" y="0" width="180" height="58" rx="3" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" stroke-width="0.8" />
+          <text x="10" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="600">COST / TIME / RISK</text>
+          <text x="10" y="34" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9">Pareto Optimization Front</text>
+          <text x="10" y="48" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8.5">Score: 92/100 (Plan Alpha)</text>
+        </g>
+
+        <!-- Human Approval Gate -->
+        <g transform="translate(415, 12)">
+          <rect x="0" y="0" width="210" height="66" rx="4" fill="#0A0E14" stroke="#ffffff" stroke-width="1.5" />
+          <circle cx="15" cy="18" r="4" fill="#ffffff" />
+          <text x="26" y="22" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9.5" font-weight="700">HUMAN APPROVAL GATE</text>
+          <text x="10" y="40" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9">Requires Operations Director Sign-off</text>
+          <rect x="10" y="48" width="190" height="14" rx="2" fill="rgba(255,255,255,0.15)" />
+          <text x="105" y="59" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8" font-weight="600">[AUTHORIZED] &bull; DISPATCHED</text>
+        </g>
+      </g>
+    </g>
+    
+        <!-- PLANE BASE: PLANE 04 -->
+        <path d="M 1780 515 L 1860 675 L 1860 685 L 1780 525 Z" fill="#05070a" stroke="rgba(255, 255, 255, 0.12)" stroke-width="0.8" />
+        <path d="M 320 675 L 1860 675 L 1860 685 L 320 685 Z" fill="#080c10" stroke="rgba(255, 255, 255, 0.22)" stroke-width="0.8" />
+        <path d="M 412 515 L 1768 515 Q 1780 515 1782 519 L 1860 671 Q 1860 675 1848 675 L 332 675 Q 320 675 318 671 L 400 519 Q 400 515 412 515 Z" fill="url(#plane-mono-grad)" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" />
+        
+        <!-- Corner L-Brackets -->
+        <path d="M 414 531 L 414 521 L 424 521" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1766 531 L 1766 521 L 1756 521" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 334 659 L 334 669 L 344 669" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1846 659 L 1846 669 L 1836 669" fill="none" stroke="#ffffff" stroke-width="1.2" />
+
+        <!-- Plane Tag -->
+        <g transform="translate(420, 531)">
+          <rect x="0" y="0" width="310" height="24" rx="3" fill="rgba(10, 14, 20, 0.95)" stroke="#ffffff" stroke-width="1" />
+          <text x="10" y="16" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">PLANE 04 &bull; INTELLIGENCE ENGINES</text>
+          <text x="325" y="16" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="0.1em">[SEVEN SPECIALIST CAUSAL & ANALYTICAL ENGINES]</text>
+        </g>
+        
+    <!-- PLANE 4 CONTENT: 7 SPECIALIST ENGINES -->
+    <g id="p4-content" transform="translate(410, 565)">
+      <!-- Central Communication Conduit -->
+      <line x1="30" y1="42" x2="1320" y2="42" stroke="rgba(255, 255, 255, 0.2)" stroke-width="1.5" stroke-dasharray="3,3" />
+    
+        <g transform="translate(0, 0)">
+          <rect x="0" y="0" width="180" height="84" rx="4" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+          <rect x="0" y="0" width="180" height="20" rx="4" fill="rgba(255, 255, 255, 0.12)" />
+          <text x="8" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">[01] ANOMALY DETECTION</text>
+          
+          <text x="8" y="38" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="8">ALGORITHM:</text>
+          <text x="8" y="52" fill="#ffffff" font-family="'Geist', sans-serif" font-size="9" font-weight="600">Isolation Forest & Z-Score</text>
+          
+          <circle cx="12" cy="70" r="3" fill="#ffffff" />
+          <text x="20" y="73" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Deterministic &bull; OK</text>
+        </g>
+        
+            <path d="M 180 42 L 192 42" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+            
+        <g transform="translate(192, 0)">
+          <rect x="0" y="0" width="180" height="84" rx="4" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+          <rect x="0" y="0" width="180" height="20" rx="4" fill="rgba(255, 255, 255, 0.12)" />
+          <text x="8" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">[02] GRAPH PROPAGATION</text>
+          
+          <text x="8" y="38" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="8">ALGORITHM:</text>
+          <text x="8" y="52" fill="#ffffff" font-family="'Geist', sans-serif" font-size="9" font-weight="600">BFS Directed Blast Radius</text>
+          
+          <circle cx="12" cy="70" r="3" fill="#ffffff" />
+          <text x="20" y="73" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Deterministic &bull; OK</text>
+        </g>
+        
+            <path d="M 372 42 L 384 42" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+            
+        <g transform="translate(384, 0)">
+          <rect x="0" y="0" width="180" height="84" rx="4" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+          <rect x="0" y="0" width="180" height="20" rx="4" fill="rgba(255, 255, 255, 0.12)" />
+          <text x="8" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">[03] RISK ANALYSIS</text>
+          
+          <text x="8" y="38" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="8">ALGORITHM:</text>
+          <text x="8" y="52" fill="#ffffff" font-family="'Geist', sans-serif" font-size="9" font-weight="600">FMEA Severity Matrix</text>
+          
+          <circle cx="12" cy="70" r="3" fill="#ffffff" />
+          <text x="20" y="73" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Deterministic &bull; OK</text>
+        </g>
+        
+            <path d="M 564 42 L 576 42" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+            
+        <g transform="translate(576, 0)">
+          <rect x="0" y="0" width="180" height="84" rx="4" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+          <rect x="0" y="0" width="180" height="20" rx="4" fill="rgba(255, 255, 255, 0.12)" />
+          <text x="8" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">[04] ACADEMIC IMPACT</text>
+          
+          <text x="8" y="38" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="8">ALGORITHM:</text>
+          <text x="8" y="52" fill="#ffffff" font-family="'Geist', sans-serif" font-size="9" font-weight="600">Class & Exam Disruption</text>
+          
+          <circle cx="12" cy="70" r="3" fill="#ffffff" />
+          <text x="20" y="73" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Deterministic &bull; OK</text>
+        </g>
+        
+            <path d="M 756 42 L 768 42" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+            
+        <g transform="translate(768, 0)">
+          <rect x="0" y="0" width="180" height="84" rx="4" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+          <rect x="0" y="0" width="180" height="20" rx="4" fill="rgba(255, 255, 255, 0.12)" />
+          <text x="8" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">[05] RECOVERY SOLVER</text>
+          
+          <text x="8" y="38" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="8">ALGORITHM:</text>
+          <text x="8" y="52" fill="#ffffff" font-family="'Geist', sans-serif" font-size="9" font-weight="600">MILP Constraint Optimizer</text>
+          
+          <circle cx="12" cy="70" r="3" fill="#ffffff" />
+          <text x="20" y="73" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Deterministic &bull; OK</text>
+        </g>
+        
+            <path d="M 948 42 L 960 42" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+            
+        <g transform="translate(960, 0)">
+          <rect x="0" y="0" width="180" height="84" rx="4" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+          <rect x="0" y="0" width="180" height="20" rx="4" fill="rgba(255, 255, 255, 0.12)" />
+          <text x="8" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">[06] TASK ASSIGNMENT</text>
+          
+          <text x="8" y="38" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="8">ALGORITHM:</text>
+          <text x="8" y="52" fill="#ffffff" font-family="'Geist', sans-serif" font-size="9" font-weight="600">Role-Based SLA Dispatch</text>
+          
+          <circle cx="12" cy="70" r="3" fill="#ffffff" />
+          <text x="20" y="73" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Deterministic &bull; OK</text>
+        </g>
+        
+            <path d="M 1140 42 L 1152 42" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+            
+        <g transform="translate(1152, 0)">
+          <rect x="0" y="0" width="180" height="84" rx="4" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+          <rect x="0" y="0" width="180" height="20" rx="4" fill="rgba(255, 255, 255, 0.12)" />
+          <text x="8" y="14" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">[07] DECISION ENGINE</text>
+          
+          <text x="8" y="38" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="8">ALGORITHM:</text>
+          <text x="8" y="52" fill="#ffffff" font-family="'Geist', sans-serif" font-size="9" font-weight="600">Consensus & Playbook Rank</text>
+          
+          <circle cx="12" cy="70" r="3" fill="#ffffff" />
+          <text x="20" y="73" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Deterministic &bull; OK</text>
+        </g>
+        </g>
+        <!-- PLANE BASE: PLANE 03 -->
+        <path d="M 1780 715 L 1860 885 L 1860 895 L 1780 725 Z" fill="#05070a" stroke="rgba(255, 255, 255, 0.12)" stroke-width="0.8" />
+        <path d="M 320 885 L 1860 885 L 1860 895 L 320 895 Z" fill="#080c10" stroke="rgba(255, 255, 255, 0.22)" stroke-width="0.8" />
+        <path d="M 412 715 L 1768 715 Q 1780 715 1782 719 L 1860 881 Q 1860 885 1848 885 L 332 885 Q 320 885 318 881 L 400 719 Q 400 715 412 715 Z" fill="url(#plane-mono-grad)" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" />
+        
+        <!-- Corner L-Brackets -->
+        <path d="M 414 731 L 414 721 L 424 721" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1766 731 L 1766 721 L 1756 721" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 334 869 L 334 879 L 344 879" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1846 869 L 1846 879 L 1836 879" fill="none" stroke="#ffffff" stroke-width="1.2" />
+
+        <!-- Plane Tag -->
+        <g transform="translate(420, 731)">
+          <rect x="0" y="0" width="310" height="24" rx="3" fill="rgba(10, 14, 20, 0.95)" stroke="#ffffff" stroke-width="1" />
+          <text x="10" y="16" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">PLANE 03 &bull; DIGITAL TWIN CORE</text>
+          <text x="325" y="16" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="0.1em">[TOPOLOGICAL GRAPH, SPATIAL BIM & REAL-TIME STATE]</text>
+        </g>
+        
+    <!-- PLANE 3 CONTENT -->
+    <g id="p3-content" transform="translate(410, 765)">
+      <!-- Left: Entity Registry -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="280" height="100" rx="5" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" />
+        <text x="14" y="20" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">ENTITY REGISTRY</text>
+        <text x="14" y="40" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Canonical UUID Catalog (8,420 Assets)</text>
+        <text x="14" y="58" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Physical (BIM) &bull; Logical (IP/Breaker)</text>
+        <text x="14" y="76" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Institutional (Course / Student Cohort)</text>
+      </g>
+
+      <!-- Center: DIRECTED DEPENDENCY GRAPH (PROMINENT & CLEAN) -->
+      <g transform="translate(300, 0)">
+        <rect x="0" y="0" width="720" height="100" rx="5" fill="rgba(10, 14, 20, 0.95)" stroke="#ffffff" stroke-width="1.4" />
+        <text x="14" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9.5" font-weight="700">DIRECTED DEPENDENCY &amp; CAUSAL TOPOLOGY GRAPH</text>
+
+        <!-- Clean Interactive-Style Nodes and Paths -->
+        <g transform="translate(25, 30)">
+          <!-- Substation -->
+          <circle cx="40" cy="30" r="16" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="1.2" />
+          <text x="40" y="33" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="7.5" font-weight="600">Substation</text>
+
+          <!-- UPS -->
+          <rect x="120" y="15" width="55" height="30" rx="3" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="1.2" />
+          <text x="147" y="33" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8" font-weight="600">UPS-MAIN</text>
+
+          <!-- Data Centre -->
+          <circle cx="250" cy="15" r="14" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="1.2" />
+          <text x="250" y="18" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="7">DataCentre</text>
+
+          <!-- MDF Core Switch -->
+          <rect x="225" y="42" width="50" height="22" rx="3" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="1" />
+          <text x="250" y="56" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="7">MDF-CORE</text>
+
+          <!-- Lab L-2 -->
+          <circle cx="370" cy="15" r="15" fill="rgba(255,255,255,0.2)" stroke="#ffffff" stroke-width="1.4" />
+          <text x="370" y="18" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8" font-weight="700">Lab L-2</text>
+
+          <!-- Class CR-104 -->
+          <circle cx="370" cy="50" r="13" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="1" />
+          <text x="370" y="53" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="7.5">CR-104</text>
+
+          <!-- CS-401 Exam -->
+          <rect x="470" y="5" width="80" height="24" rx="3" fill="rgba(255,255,255,0.25)" stroke="#ffffff" stroke-width="1.2" />
+          <text x="510" y="20" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="7.5" font-weight="700">CS-401 EXAM</text>
+
+          <!-- EE-202 Lab -->
+          <rect x="470" y="38" width="80" height="24" rx="3" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="1" />
+          <text x="510" y="53" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="7.5">EE-202 LAB</text>
+
+          <!-- Directed Causal Edges -->
+          <path d="M 56 30 L 120 30" stroke="#ffffff" stroke-width="1.5" marker-end="url(#arr-white)" />
+          <path d="M 175 25 L 236 18" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+          <path d="M 175 35 L 225 50" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+          <path d="M 264 15 L 355 15" stroke="#ffffff" stroke-width="1.5" marker-end="url(#arr-white)" />
+          <path d="M 275 52 L 357 52" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+          <path d="M 385 15 L 470 15" stroke="#ffffff" stroke-width="1.5" marker-end="url(#arr-white)" />
+          <path d="M 383 50 L 470 50" stroke="#ffffff" stroke-width="1.2" marker-end="url(#arr-white)" />
+
+          <!-- Topology stats -->
+          <text x="580" y="24" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="8">DAG Traversal: 4.2ms</text>
+          <text x="580" y="42" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="8">Cycle-Free Verification</text>
+        </g>
+      </g>
+
+      <!-- Right: Spatial Model & State Engine -->
+      <g transform="translate(1040, 0)">
+        <rect x="0" y="0" width="310" height="100" rx="5" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" />
+        <text x="14" y="20" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">SPATIAL BIM &amp; STATE ENGINE</text>
+        <text x="14" y="40" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; 3D BIM / GIS Spatial Query Index</text>
+        <text x="14" y="58" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Real-Time Memory Cache (14k ops/s)</text>
+        <text x="14" y="76" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Point-in-time Snapshotting &amp; Replay</text>
+      </g>
+    </g>
+    
+        <!-- PLANE BASE: PLANE 02 -->
+        <path d="M 1780 915 L 1860 1065 L 1860 1075 L 1780 925 Z" fill="#05070a" stroke="rgba(255, 255, 255, 0.12)" stroke-width="0.8" />
+        <path d="M 320 1065 L 1860 1065 L 1860 1075 L 320 1075 Z" fill="#080c10" stroke="rgba(255, 255, 255, 0.22)" stroke-width="0.8" />
+        <path d="M 412 915 L 1768 915 Q 1780 915 1782 919 L 1860 1061 Q 1860 1065 1848 1065 L 332 1065 Q 320 1065 318 1061 L 400 919 Q 400 915 412 915 Z" fill="url(#plane-mono-grad)" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" />
+        
+        <!-- Corner L-Brackets -->
+        <path d="M 414 931 L 414 921 L 424 921" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1766 931 L 1766 921 L 1756 921" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 334 1049 L 334 1059 L 344 1059" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1846 1049 L 1846 1059 L 1836 1059" fill="none" stroke="#ffffff" stroke-width="1.2" />
+
+        <!-- Plane Tag -->
+        <g transform="translate(420, 931)">
+          <rect x="0" y="0" width="310" height="24" rx="3" fill="rgba(10, 14, 20, 0.95)" stroke="#ffffff" stroke-width="1" />
+          <text x="10" y="16" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">PLANE 02 &bull; DATA ACQUISITION</text>
+          <text x="325" y="16" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="0.1em">[MULTI-PROTOCOL INGRESS & NORMALIZATION]</text>
+        </g>
+        
+    <!-- PLANE 2 CONTENT -->
+    <g id="p2-content" transform="translate(410, 960)">
+      <!-- 1. Sensor Gateways (Real Telemetry - Solid Line) -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="310" height="85" rx="5" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1.2" />
+        <text x="14" y="20" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9.5" font-weight="700">SENSOR GATEWAYS [REAL]</text>
+        <text x="14" y="38" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; IoT Edge Nodes &bull; Wi-Fi 6 &bull; MQTT &bull; LoRa</text>
+        <text x="14" y="54" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Substation Modbus Meters &bull; BACnet HVAC</text>
+        <text x="14" y="72" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5">Stream: Solid White Vector (12k msg/s)</text>
+      </g>
+
+      <!-- 2. Institutional Adapters (Reported Data - Dotted Line) -->
+      <g transform="translate(330, 0)">
+        <rect x="0" y="0" width="310" height="85" rx="5" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" stroke-dasharray="3,3" />
+        <text x="14" y="20" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9.5" font-weight="700">INSTITUTIONAL ADAPTERS [REPORTED]</text>
+        <text x="14" y="38" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; ERP &bull; Timetable &bull; SIS Student Schedule</text>
+        <text x="14" y="54" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Mobile PWA Trouble Tickets &bull; Kiosk Input</text>
+        <text x="14" y="72" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5">Stream: Dotted Line (Asynchronous)</text>
+      </g>
+
+      <!-- 3. Synthetic Generator (Synthetic Data - Dashed Line) -->
+      <g transform="translate(660, 0)">
+        <rect x="0" y="0" width="310" height="85" rx="5" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" stroke-dasharray="6,3" />
+        <text x="14" y="20" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9.5" font-weight="700">SYNTHETIC GENERATOR [SYNTHETIC]</text>
+        <text x="14" y="38" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Fault Injector &bull; Virtual Node Load Sim</text>
+        <text x="14" y="54" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Counterfactual Sensor Drift &amp; Noise</text>
+        <text x="14" y="72" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5">Stream: Dashed Line (Tainted Sandbox)</text>
+      </g>
+
+      <!-- 4. Normalization & Validation Pipeline -->
+      <g transform="translate(990, 0)">
+        <rect x="0" y="0" width="360" height="85" rx="5" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+        <text x="14" y="20" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9.5" font-weight="700">VALIDATION &amp; NORMALIZATION [PIPE-01]</text>
+        <text x="14" y="38" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Schema Validation (99.98% Clean Pass)</text>
+        <text x="14" y="54" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; SI Units Conversion &bull; UTC Timestamp Sync</text>
+        <text x="14" y="72" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="9.5">&bull; Estimated Data Engine (Kalman Filter)</text>
+      </g>
+    </g>
+    
+        <!-- PLANE BASE: PLANE 01 -->
+        <path d="M 1780 1095 L 1860 1285 L 1860 1295 L 1780 1105 Z" fill="#05070a" stroke="rgba(255, 255, 255, 0.12)" stroke-width="0.8" />
+        <path d="M 320 1285 L 1860 1285 L 1860 1295 L 320 1295 Z" fill="#080c10" stroke="rgba(255, 255, 255, 0.22)" stroke-width="0.8" />
+        <path d="M 412 1095 L 1768 1095 Q 1780 1095 1782 1099 L 1860 1281 Q 1860 1285 1848 1285 L 332 1285 Q 320 1285 318 1281 L 400 1099 Q 400 1095 412 1095 Z" fill="url(#plane-mono-grad)" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" />
+        
+        <!-- Corner L-Brackets -->
+        <path d="M 414 1111 L 414 1101 L 424 1101" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1766 1111 L 1766 1101 L 1756 1101" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 334 1269 L 334 1279 L 344 1279" fill="none" stroke="#ffffff" stroke-width="1.2" />
+        <path d="M 1846 1269 L 1846 1279 L 1836 1279" fill="none" stroke="#ffffff" stroke-width="1.2" />
+
+        <!-- Plane Tag -->
+        <g transform="translate(420, 1111)">
+          <rect x="0" y="0" width="310" height="24" rx="3" fill="rgba(10, 14, 20, 0.95)" stroke="#ffffff" stroke-width="1" />
+          <text x="10" y="16" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">PLANE 01 &bull; PHYSICAL COLLEGE</text>
+          <text x="325" y="16" fill="#94a3b8" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="0.1em">[MINIATURE CAMPUS BLUEPRINT & UTILITY INFRASTRUCTURE]</text>
+        </g>
+        
+    <!-- PLANE 1 CONTENT: CAMPUS BLUEPRINT -->
+    <g id="p1-content" transform="translate(410, 1145)">
+      <!-- Zone 1: Academic Classrooms (CR-101 .. CR-108 & Lecture Halls) -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="360" height="110" rx="4" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" />
+        <text x="12" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">ACADEMIC WING (8 CLASSROOMS &amp; 2 HALLS)</text>
+        
+        <!-- Classroom mini-grid -->
+        <g transform="translate(10, 26)">
+          <rect x="0" y="0" width="78" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="6" y="15" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">CR-101..103</text>
+
+          <rect x="85" y="0" width="78" height="22" rx="2" fill="rgba(255,255,255,0.2)" stroke="#ffffff" stroke-width="1.2" />
+          <text x="91" y="15" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8" font-weight="700">CR-104 [FOCAL]</text>
+
+          <rect x="170" y="0" width="78" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="176" y="15" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">CR-105..106</text>
+
+          <rect x="255" y="0" width="80" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="261" y="15" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">CR-107..108</text>
+
+          <!-- Lecture Halls -->
+          <rect x="0" y="28" width="165" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="8" y="43" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">Lecture Hall Alpha (180 cap)</text>
+
+          <rect x="170" y="28" width="165" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="178" y="43" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">Lecture Hall Beta (180 cap)</text>
+        </g>
+        <text x="12" y="98" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Smart Projectors &bull; Occupancy Nodes &bull; Wi-Fi 6</text>
+      </g>
+
+      <!-- Zone 2: 3 Advanced Laboratories -->
+      <g transform="translate(380, 0)">
+        <rect x="0" y="0" width="370" height="110" rx="4" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1.2" />
+        <text x="12" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">RESEARCH LABORATORIES (3 LABS)</text>
+
+        <g transform="translate(10, 26)">
+          <rect x="0" y="0" width="350" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="8" y="15" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5">Lab 01: High-Performance Computing (60 Nodes)</text>
+
+          <rect x="0" y="26" width="350" height="24" rx="2" fill="rgba(255,255,255,0.18)" stroke="#ffffff" stroke-width="1.2" />
+          <text x="8" y="42" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5" font-weight="700">Lab 02: AI, Autonomous Systems &amp; Robotics [CRITICAL]</text>
+
+          <rect x="0" y="54" width="350" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="8" y="69" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5">Lab 03: Power Systems &amp; High-Voltage Smart Grid</text>
+        </g>
+        <text x="12" y="98" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Chilled Water Loops &bull; Modbus Power &bull; Safety EPO</text>
+      </g>
+
+      <!-- Zone 3: Administration & Faculty -->
+      <g transform="translate(770, 0)">
+        <rect x="0" y="0" width="280" height="110" rx="4" fill="rgba(14, 19, 27, 0.9)" stroke="#ffffff" stroke-width="1" />
+        <text x="12" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">ADMINISTRATION &amp; FACULTY</text>
+        <g transform="translate(10, 26)">
+          <rect x="0" y="0" width="260" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.2)" />
+          <text x="8" y="15" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">Dean &amp; Registrar Executive Suite</text>
+
+          <rect x="0" y="26" width="260" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.2)" />
+          <text x="8" y="41" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">Facilities Ops &amp; Security NOC</text>
+
+          <rect x="0" y="52" width="260" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.2)" />
+          <text x="8" y="67" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">Faculty Hubs (North &amp; South Wings)</text>
+        </g>
+        <text x="12" y="98" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">BMS Control &bull; IDF-03 Switch Cabinet</text>
+      </g>
+
+      <!-- Zone 4: Power Supply, Data Centre & Network Core -->
+      <g transform="translate(1070, 0)">
+        <rect x="0" y="0" width="280" height="110" rx="4" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.2" />
+        <text x="12" y="18" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="9" font-weight="700">UTILITY CORE &amp; INFRASTRUCTURE</text>
+        <g transform="translate(10, 26)">
+          <rect x="0" y="0" width="260" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="8" y="15" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">11kV Substation &bull; 500kVA Diesel &bull; UPS</text>
+
+          <rect x="0" y="26" width="260" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="8" y="41" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">Data Centre (Racks R01-R06 &bull; In-Row)</text>
+
+          <rect x="0" y="52" width="260" height="22" rx="2" fill="#0A0E14" stroke="rgba(255,255,255,0.3)" />
+          <text x="8" y="67" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">Network Backbone (MDF &bull; Wi-Fi 6 &bull; 5G)</text>
+        </g>
+        <text x="12" y="98" fill="#64748b" font-family="'Geist Mono', monospace" font-size="8">Dual A/B Feed &bull; 10GbE Fiber Ring</text>
+      </g>
+    </g>
+    
+    <!-- VERTICAL SECURITY & GOVERNANCE SPINE -->
+    <g id="security-spine" transform="translate(60, 130)">
+      <rect x="0" y="0" width="220" height="1155" rx="6" fill="rgba(14, 19, 27, 0.95)" stroke="#ffffff" stroke-width="1.4" />
+      <rect x="0" y="0" width="220" height="34" rx="6" fill="rgba(255, 255, 255, 0.15)" />
+      <circle cx="16" cy="17" r="4" fill="#ffffff" />
+      <text x="28" y="21" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">SECURITY &amp; GOVERNANCE</text>
+
+      <!-- Level 6 Controls -->
+      <g transform="translate(12, 46)">
+        <text x="0" y="12" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5" font-weight="600">[L06] INTERFACE RBAC</text>
+        <text x="0" y="28" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; OAuth 2.0 / SAML SSO</text>
+        <text x="0" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Zero-Trust Session Guard</text>
+        <text x="0" y="56" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Role-Based Access Scopes</text>
+      </g>
+      <line x1="12" y1="120" x2="208" y2="120" stroke="rgba(255,255,255,0.15)" stroke-width="0.8" />
+
+      <!-- Level 5 Controls -->
+      <g transform="translate(12, 135)">
+        <text x="0" y="12" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5" font-weight="600">[L05] HUMAN GOVERNANCE</text>
+        <text x="0" y="28" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Physical Actuation Gate</text>
+        <text x="0" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Multi-Signature Sign-off</text>
+        <text x="0" y="56" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Strict Sandbox Isolation</text>
+      </g>
+      <line x1="12" y1="210" x2="208" y2="210" stroke="rgba(255,255,255,0.15)" stroke-width="0.8" />
+
+      <!-- Level 4 Controls -->
+      <g transform="translate(12, 225)">
+        <text x="0" y="12" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5" font-weight="600">[L04] ENGINE GUARDRAILS</text>
+        <text x="0" y="28" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Algorithmic Safety Invariants</text>
+        <text x="0" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Explainability Proofs</text>
+        <text x="0" y="56" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Decision Provenance Log</text>
+      </g>
+      <line x1="12" y1="300" x2="208" y2="300" stroke="rgba(255,255,255,0.15)" stroke-width="0.8" />
+
+      <!-- Level 3 Controls -->
+      <g transform="translate(12, 315)">
+        <text x="0" y="12" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5" font-weight="600">[L03] GRAPH INTEGRITY</text>
+        <text x="0" y="28" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Schema Tamper Detection</text>
+        <text x="0" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Append-Only State Ledger</text>
+        <text x="0" y="56" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Merkle Tree State Hashes</text>
+      </g>
+      <line x1="12" y1="390" x2="208" y2="390" stroke="rgba(255,255,255,0.15)" stroke-width="0.8" />
+
+      <!-- Level 2 Controls -->
+      <g transform="translate(12, 405)">
+        <text x="0" y="12" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5" font-weight="600">[L02] INGRESS PROVENANCE</text>
+        <text x="0" y="28" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Hardware TPM Attestation</text>
+        <text x="0" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Cryptographic Stream Taint</text>
+        <text x="0" y="56" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Anti-Spoof Protocol Filters</text>
+      </g>
+      <line x1="12" y1="480" x2="208" y2="480" stroke="rgba(255,255,255,0.15)" stroke-width="0.8" />
+
+      <!-- Level 1 Controls -->
+      <g transform="translate(12, 495)">
+        <text x="0" y="12" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5" font-weight="600">[L01] PHYSICAL SECURITY</text>
+        <text x="0" y="28" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Biometric Access Readers</text>
+        <text x="0" y="42" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Substation Perimeter Locks</text>
+        <text x="0" y="56" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="8.5">&bull; Hardwired Fail-Safe EPO</text>
+      </g>
+    </g>
+
+    <!-- Lateral conduits connecting spine to planes -->
+    <path d="M 280 200 L 400 200" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arr-white)" />
+    <path d="M 280 390 L 400 390" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arr-white)" />
+    <path d="M 280 590 L 400 590" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arr-white)" />
+    <path d="M 280 790 L 400 790" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arr-white)" />
+    <path d="M 280 990 L 400 990" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arr-white)" />
+    <path d="M 280 1190 L 400 1190" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arr-white)" />
+    
+    <!-- VERTICAL INTER-PLANE CONDUITS -->
+    <g id="inter-plane-flows">
+      <!-- P1 -> P2 (Sensor Telemetry Uplink) -->
+      <path d="M 600 1145 L 600 1065" stroke="#ffffff" stroke-width="2" marker-end="url(#arr-white)" />
+      <rect x="555" y="1092" width="90" height="18" rx="2" fill="#0A0E14" stroke="#ffffff" stroke-width="0.8" />
+      <text x="600" y="1104" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">TELEMETRY</text>
+
+      <!-- P2 -> P3 (Normalized Event Bus) -->
+      <path d="M 850 960 L 850 885" stroke="#ffffff" stroke-width="2" marker-end="url(#arr-white)" />
+      <rect x="790" y="912" width="120" height="18" rx="2" fill="#0A0E14" stroke="#ffffff" stroke-width="0.8" />
+      <text x="850" y="924" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">NORMALIZED STREAM</text>
+
+      <!-- P3 -> P4 (State Graph to Engines) -->
+      <path d="M 1000 765 L 1000 675" stroke="#ffffff" stroke-width="2" marker-end="url(#arr-white)" />
+      <rect x="940" y="710" width="120" height="18" rx="2" fill="#0A0E14" stroke="#ffffff" stroke-width="0.8" />
+      <text x="1000" y="722" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">GRAPH STATE FEED</text>
+
+      <!-- P4 -> P5 (Causal Recommendations to Simulation) -->
+      <path d="M 1150 565 L 1150 475" stroke="#ffffff" stroke-width="2" marker-end="url(#arr-white)" />
+      <rect x="1080" y="510" width="140" height="18" rx="2" fill="#0A0E14" stroke="#ffffff" stroke-width="0.8" />
+      <text x="1150" y="522" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">RECOVERY PLAYBOOKS</text>
+
+      <!-- P5 -> P6 (Approved Actions to Command) -->
+      <path d="M 1250 365 L 1250 275" stroke="#ffffff" stroke-width="2" marker-end="url(#arr-white)" />
+      <rect x="1185" y="310" width="130" height="18" rx="2" fill="#0A0E14" stroke="#ffffff" stroke-width="0.8" />
+      <text x="1250" y="322" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8">APPROVED COMMANDS</text>
+
+      <!-- Closed-Loop Feedback Flow (Right Edge: Control down to Physical Campus) -->
+      <path d="M 1790 275 L 1790 1145" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arr-white)" />
+      <rect x="1710" y="710" width="160" height="24" rx="3" fill="#0A0E14" stroke="#ffffff" stroke-width="1" />
+      <text x="1790" y="726" text-anchor="middle" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="8.5" font-weight="700">CLOSED-LOOP ACTUATION</text>
+    </g>
+    
+    <!-- FOOTER -->
+    <g id="footer" transform="translate(60, 1315)">
+      <rect x="0" y="0" width="1800" height="105" rx="6" fill="rgba(14, 19, 27, 0.85)" stroke="rgba(255, 255, 255, 0.22)" stroke-width="1.2" />
+
+      <g transform="translate(25, 20)">
+        <text x="0" y="16" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">OMNIS-X SYSTEM SPECIFICATION SUMMARY</text>
+        <text x="0" y="36" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">Level 01: Physical Campus (Classrooms, Labs, Substation, Data Centre)</text>
+        <text x="0" y="52" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">Level 02: Multi-Protocol Data Acquisition &amp; Normalization Pipeline</text>
+        <text x="0" y="68" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">Level 03: Digital Twin Core (Directed Dependency Graph &amp; Spatial BIM)</text>
+      </g>
+
+      <g transform="translate(680, 20)">
+        <text x="0" y="16" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">OPERATIONAL &amp; RESILIENCE TIERS</text>
+        <text x="0" y="36" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">Level 04: Seven Specialist Mathematical &amp; Heuristic Engines</text>
+        <text x="0" y="52" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">Level 05: Counterfactual Simulation Sandbox &amp; Human Approval Gate</text>
+        <text x="0" y="68" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">Level 06: Operational Command Centers &amp; Citizen Reporting Portal</text>
+      </g>
+
+      <g transform="translate(1320, 20)">
+        <text x="0" y="16" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10" font-weight="700">GOVERNANCE GUARANTEES</text>
+        <text x="0" y="36" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">&bull; Human-in-the-Loop Sign-off before physical actuation</text>
+        <text x="0" y="52" fill="#94a3b8" font-family="'Geist', sans-serif" font-size="10">&bull; Zero-Trust RBAC across all ingress and control planes</text>
+        <text x="0" y="68" fill="#ffffff" font-family="'Geist Mono', monospace" font-size="10">&bull; 100% Closed-Loop Automated &amp; Verified Feedback</text>
+      </g>
+    </g>
+    
+</svg>

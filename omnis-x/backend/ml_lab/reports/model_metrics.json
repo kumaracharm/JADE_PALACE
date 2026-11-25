@@ -1,0 +1,167 @@
+{
+  "timestamp": "2026-11-25T20:20:09.182352",
+  "evaluation_standard": "Stratified 80/20 Holdout Evaluation with Baseline Comparison",
+  "models": {
+    "equipment_failure": {
+      "model_name": "RandomForestClassifier (Equipment Failure)",
+      "train_rows": 3200,
+      "test_rows": 800,
+      "features": [
+        "temperature_c",
+        "vibration_mm_s",
+        "pressure_bar",
+        "rotational_speed_rpm",
+        "operating_hours",
+        "maintenance_history"
+      ],
+      "classes": [
+        "CRITICAL_FAILURE",
+        "NORMAL",
+        "WARNING"
+      ],
+      "accuracy": 0.9113,
+      "precision_weighted": 0.9172,
+      "recall_weighted": 0.9113,
+      "f1_weighted": 0.9131,
+      "roc_auc_ovr": 0.9773,
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          9
+        ],
+        [
+          0,
+          563,
+          39
+        ],
+        [
+          7,
+          16,
+          151
+        ]
+      ],
+      "baseline_comparison": {
+        "baseline_model": "LogisticRegression (StandardScaled)",
+        "baseline_accuracy": 0.9237,
+        "baseline_f1": 0.9238,
+        "accuracy_delta": -0.0125
+      }
+    },
+    "it_infrastructure": {
+      "model_name": "RandomForestClassifier (IT Anomaly)",
+      "train_rows": 3200,
+      "test_rows": 800,
+      "features": [
+        "cpu_usage",
+        "memory_usage",
+        "network_latency_ms",
+        "packet_loss",
+        "disk_usage",
+        "request_rate"
+      ],
+      "classes": [
+        "DEGRADED",
+        "FAULT",
+        "NORMAL"
+      ],
+      "accuracy": 1.0,
+      "precision_weighted": 1.0,
+      "recall_weighted": 1.0,
+      "f1_weighted": 1.0,
+      "roc_auc_ovr": 1.0,
+      "confusion_matrix": [
+        [
+          16,
+          0,
+          0
+        ],
+        [
+          0,
+          90,
+          0
+        ],
+        [
+          0,
+          0,
+          694
+        ]
+      ],
+      "baseline_comparison": {
+        "baseline_model": "LogisticRegression (StandardScaled)",
+        "baseline_accuracy": 0.99,
+        "baseline_f1": 0.99,
+        "accuracy_delta": 0.01
+      }
+    },
+    "transport_delay": {
+      "model_name": "HistGradientBoostingRegressor (Transport Delay)",
+      "train_rows": 3200,
+      "test_rows": 800,
+      "features": [
+        "traffic_density",
+        "rainfall",
+        "road_condition",
+        "departure_time",
+        "historical_travel_time"
+      ],
+      "target": "delay_minutes",
+      "mae": 2.0437,
+      "rmse": 2.5543,
+      "r2_score": 0.843,
+      "baseline_comparison": {
+        "baseline_model": "DummyRegressor (Mean)",
+        "baseline_mae": 5.2244,
+        "baseline_rmse": 6.4469,
+        "baseline_r2": -0.0001,
+        "mae_reduction": 3.1807,
+        "r2_improvement": 0.8431
+      }
+    },
+    "electrical_infrastructure": {
+      "model_name": "RandomForestClassifier (Electrical Grid)",
+      "train_rows": 3200,
+      "test_rows": 800,
+      "features": [
+        "voltage",
+        "current",
+        "power_load_kw",
+        "transformer_temperature",
+        "power_factor"
+      ],
+      "classes": [
+        "CRITICAL",
+        "NORMAL",
+        "WARNING"
+      ],
+      "accuracy": 1.0,
+      "precision_weighted": 1.0,
+      "recall_weighted": 1.0,
+      "f1_weighted": 1.0,
+      "roc_auc_ovr": 1.0,
+      "confusion_matrix": [
+        [
+          159,
+          0,
+          0
+        ],
+        [
+          0,
+          347,
+          0
+        ],
+        [
+          0,
+          0,
+          294
+        ]
+      ],
+      "baseline_comparison": {
+        "baseline_model": "LogisticRegression (StandardScaled)",
+        "baseline_accuracy": 0.7987,
+        "baseline_f1": 0.7992,
+        "accuracy_delta": 0.2013
+      }
+    }
+  }
+}

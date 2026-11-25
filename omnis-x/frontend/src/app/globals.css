@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  /* Palette: Charcoal Base */
+  --charcoal-black: #0C0D0E;
+  --charcoal-deep: #121316;
+  --charcoal-surface: #18191E;
+  --charcoal-elevated: #20222A;
+  --charcoal-border: #2D303B;
+  --charcoal-border-light: #3F4352;
+
+  /* Palette: Dusty Purple */
+  --dusty-purple: #9D8EB5;
+  --dusty-purple-light: #BDB0D3;
+  --dusty-purple-deep: #5A4E70;
+  --dusty-purple-subtle: #383046;
+  --dusty-purple-tint: rgba(157, 142, 181, 0.14);
+
+  /* Palette: Gold */
+  --gold: #D4AF37;
+  --gold-bright: #F5D061;
+  --gold-soft: #E6C45E;
+  --gold-deep: #91751F;
+  --gold-tint: rgba(212, 175, 55, 0.14);
+
+  /* Semantic Status Overlays */
+  --status-nominal: #52B788;
+  --status-degraded: #E5A83B;
+  --status-critical: #E05D5D;
+}
+
+html, body {
+  background-color: #0E0F12;
+  color: #E2E1E6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom charcoal & gold scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #121316;
+}
+::-webkit-scrollbar-thumb {
+  background: #2D303B;
+  border-radius: 3px;
+  border: 1px solid #3F4352;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5A4E70;
+}
+
+/* Floorplan CAD grid styling in Charcoal & Dusty Purple */
+.cad-grid-pattern {
+  background-color: #101114;
+  background-image: 
+    linear-gradient(rgba(157, 142, 181, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(157, 142, 181, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(45, 48, 59, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 48, 59, 0.35) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+}
+
+/* Pulsing radar effects */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  50% { transform: scale(1.6); opacity: 0.15; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* Electrical Gold Energy Flow Animation */
+@keyframes gold-energy-flow {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.animate-energy-flow {
+  stroke-dasharray: 6 4;
+  animation: gold-energy-flow 1.2s linear infinite;
+}
+
+/* Dusty Purple Data Flow Animation */
+.animate-data-flow {
+  stroke-dasharray: 4 6;
+  animation: gold-energy-flow 0.9s linear infinite;
+}
