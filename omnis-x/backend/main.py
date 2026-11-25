@@ -47,6 +47,10 @@ async def lifespan(app: FastAPI):
             len(graph_repository.graph.nodes),
             len(graph_repository.graph.edges),
         )
+        # 4. Ensure central global synthetic telemetry producer is running
+        from backend.api.demo import broadcaster
+        broadcaster.ensure_producer()
+        logger.info("Global synthetic telemetry broadcaster initialized.")
     finally:
         db.close()
 

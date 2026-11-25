@@ -53,38 +53,103 @@ export function CommandWorkspace({
     current_a: 198.0,
     temperature_c: 23.4,
     frequency_hz: 50.01,
+    network_latency_ms: 4.2,
+    packet_loss_pct: 0.0,
+    water_pressure: 3.42,
   });
   const [demoExplanation, setDemoExplanation] = useState<any>(null);
   const [isDemoActionRunning, setIsDemoActionRunning] = useState<boolean>(false);
+  const [demoSequence, setDemoSequence] = useState<number>(1000);
+  const [demoTimestamp, setDemoTimestamp] = useState<string>("");
+  const [demoSource, setDemoSource] = useState<string>("SYNTHETIC LIVE DATA");
+  const [demoStatus, setDemoStatus] = useState<string>("OPERATIONAL");
+  const [demoIncidentId, setDemoIncidentId] = useState<string>("INC-DEMO-01");
+  const [isSseLive, setIsSseLive] = useState<boolean>(false);
+  const [eventFeed, setEventFeed] = useState<Array<{
+    sequence: number;
+    timestamp: string;
+    scenario: string;
+    voltage_v: number;
+    current_a: number;
+    active_power_kw: number;
+    temperature_c: number;
+    status: string;
+    incident_id?: string;
+  }>>([]);
 
   // Keyboard controls & SSE live stream
   useEffect(() => {
     let isMounted = true;
+    let eventSource: EventSource | null = null;
+    let reconnectTimer: any = null;
 
     // Initial fetch of snapshot
     DigitalTwinApi.getDemoStatus().then((snap) => {
       if (!isMounted || !snap) return;
-      setDemoTelemetry(snap.telemetry);
-      setDemoState(snap.demo_state);
-      setDemoExplanation(snap.explanation);
+      if (snap.telemetry) setDemoTelemetry(snap.telemetry);
+      if (snap.demo_state) setDemoState(snap.demo_state);
+      if (snap.explanation) setDemoExplanation(snap.explanation);
+      if (snap.sequence) setDemoSequence(snap.sequence);
+      if (snap.timestamp) setDemoTimestamp(snap.timestamp);
     });
 
-    // Real-Time Server-Sent Events (SSE) telemetry connection
-    let eventSource: EventSource | null = null;
-    try {
-      eventSource = new EventSource("http://127.0.0.1:8000/api/v1/demo/stream");
-      eventSource.onmessage = (event) => {
-        if (!isMounted) return;
-        try {
-          const data = JSON.parse(event.data);
-          setDemoTelemetry(data.telemetry);
-          setDemoState(data.demo_state);
-          if (data.explanation) setDemoExplanation(data.explanation);
-        } catch (e) {}
-      };
-    } catch (e) {
-      console.warn("SSE connection error, falling back to interval:", e);
-    }
+    const connectSse = () => {
+      try {
+        eventSource = new EventSource("http://127.0.0.1:8000/api/v1/demo/stream");
+        eventSource.onopen = () => {
+          if (isMounted) setIsSseLive(true);
+        };
+        eventSource.onmessage = (event) => {
+          if (!isMounted) return;
+          try {
+            const data = JSON.parse(event.data);
+            setIsSseLive(true);
+            if (data.telemetry) setDemoTelemetry(data.telemetry);
+            if (data.demo_state) setDemoState(data.demo_state);
+            if (data.scenario) setDemoState(data.scenario);
+            if (data.sequence) setDemoSequence(data.sequence);
+            if (data.timestamp) setDemoTimestamp(data.timestamp);
+            if (data.source) setDemoSource(data.source);
+            if (data.status) setDemoStatus(data.status);
+            if (data.incident_id) setDemoIncidentId(data.incident_id);
+            if (data.explanation) setDemoExplanation(data.explanation);
+
+            // Rolling recent event feed
+            setEventFeed((prev) => {
+              const entry = {
+                sequence: data.sequence ?? prev[0]?.sequence ?? 1,
+                timestamp: data.timestamp ?? new Date().toISOString(),
+                scenario: data.scenario || data.demo_state || "NORMAL",
+                voltage_v: data.voltage_v ?? data.telemetry?.voltage_v ?? 415.0,
+                current_a: data.current_a ?? data.telemetry?.current_a ?? 198.0,
+                active_power_kw: data.active_power_kw ?? data.telemetry?.active_power_kw ?? 142.5,
+                temperature_c: data.temperature_c ?? data.telemetry?.temperature_c ?? 23.4,
+                status: data.status || "OPERATIONAL",
+                incident_id: data.incident_id,
+              };
+              return [entry, ...prev.slice(0, 6)];
+            });
+          } catch (e) {}
+        };
+        eventSource.onerror = () => {
+          if (isMounted) setIsSseLive(false);
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          if (isMounted) {
+            reconnectTimer = setTimeout(connectSse, 2000);
+          }
+        };
+      } catch (e) {
+        console.warn("SSE connection error:", e);
+        if (isMounted) {
+          reconnectTimer = setTimeout(connectSse, 3000);
+        }
+      }
+    };
+
+    connectSse();
 
     // Keyboard shortcuts: 1, 2, 3 (ignoring inputs/textareas)
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -99,6 +164,7 @@ export function CommandWorkspace({
 
     return () => {
       isMounted = false;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
       if (eventSource) eventSource.close();
       window.removeEventListener("keydown", handleKeyDown);
     };
@@ -376,32 +442,52 @@ export function CommandWorkspace({
       {/* 2.4 LIVE FIVE-MINUTE EMERGENCY DEMONSTRATION CONTROLS & EXPLANATION BANNER */}
       <div className="p-4 rounded-xl bg-gradient-to-r from-[#17151D] via-[#14151C] to-[#191924] border border-[#3B3449] shadow-2xl space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-[#2A2636]">
-          <div className="flex items-center space-x-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+          <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
+            <span className={`w-2.5 h-2.5 rounded-full ${isSseLive ? "bg-emerald-400 animate-ping" : "bg-amber-500"}`} />
             <span className="font-mono font-bold text-xs uppercase tracking-wider text-[#FFFFFF]">
               Live Emergency Demonstration Matrix (Hotkeys: 1, 2, 3)
             </span>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
+              {isSseLive ? "LIVE SSE" : "CONNECTING..."}
+            </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#D4AF37]/15 text-[#F5D061] border border-[#D4AF37]/30 font-bold">
-              SYNTHETIC / SIMULATED SSE
+              SYNTHETIC LIVE DATA
+            </span>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#2D2338] text-[#D4AF37] border border-[#58486D] font-bold">
+              SEQ #{demoSequence}
             </span>
           </div>
 
           {/* Real-Time Live Ticker */}
-          <div className="flex items-center space-x-3 text-[11px] font-mono text-[#A69FB1] flex-wrap gap-y-1">
+          <div className="flex items-center space-x-2.5 text-[11px] font-mono text-[#A69FB1] flex-wrap gap-y-1">
             <div className="flex items-center space-x-1">
-              <span className="text-[#767180]">BUS:</span>
-              <span className="text-[#FFFFFF] font-bold">415V/3Ø</span>
+              <span className="text-[#767180]">TIME:</span>
+              <span className="text-[#E2E1E6] font-bold">
+                {demoTimestamp ? new Date(demoTimestamp).toLocaleTimeString([], { hour12: false }) : "--:--:--"}
+              </span>
             </div>
             <span>•</span>
             <div className="flex items-center space-x-1">
-              <span className="text-[#767180]">VOLTAGE:</span>
+              <span className="text-[#767180]">VOLT:</span>
               <span className="text-[#F5D061] font-bold">{demoTelemetry?.voltage_v?.toFixed(1) || "415.0"} V</span>
             </div>
             <span>•</span>
             <div className="flex items-center space-x-1">
-              <span className="text-[#767180]">FEEDER F1:</span>
+              <span className="text-[#767180]">CURR:</span>
+              <span className="text-[#F5D061] font-bold">{demoTelemetry?.current_a?.toFixed(1) || "198.0"} A</span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center space-x-1">
+              <span className="text-[#767180]">POWER:</span>
               <span className={`font-bold ${demoState === "INTERRUPTED" || demoState === "RECOVERY_PLANNED" ? "text-red-400" : "text-emerald-400"}`}>
                 {demoState === "INTERRUPTED" || demoState === "RECOVERY_PLANNED" ? "0.0 kW (TRIPPED)" : `${demoTelemetry?.active_power_kw?.toFixed(1) || "142.5"} kW`}
+              </span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center space-x-1">
+              <span className="text-[#767180]">STATE:</span>
+              <span className={`font-bold uppercase ${demoState === "NORMAL" ? "text-emerald-400" : demoState === "INTERRUPTED" ? "text-red-400" : "text-[#F5D061]"}`}>
+                {demoState}
               </span>
             </div>
           </div>
@@ -560,6 +646,77 @@ export function CommandWorkspace({
         demoState={demoState}
         telemetry={demoTelemetry}
       />
+
+      {/* 2.6 CONTINUOUS GLOBAL SYNTHETIC STREAM FEED (TICKING 1.0s VIA SSE) */}
+      <div className="p-4 rounded-xl bg-[#14151A] border border-[#252833] shadow-xl space-y-3 font-mono">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#252833]">
+          <div className="flex items-center space-x-2">
+            <span className={`w-2 h-2 rounded-full ${isSseLive ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+            <h2 className="text-xs font-bold uppercase text-[#FFFFFF] tracking-wider">
+              GLOBAL SYNTHETIC TELEMETRY STREAM (1.0s SERVER-SENT EVENT FEED)
+            </h2>
+            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#2D2A38] text-[#BDB0D3] border border-[#5E5073]/50 font-bold">
+              SYNTHETIC LIVE DATA
+            </span>
+          </div>
+          <div className="text-[11px] text-[#8A8594] flex items-center space-x-2">
+            <span>Endpoint: <strong className="text-[#F5D061]">/api/v1/demo/stream</strong></span>
+            <span>•</span>
+            <span>Active Sequence: <strong className="text-emerald-400">#{demoSequence}</strong></span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-[#252833] text-[10px] text-[#767180] uppercase">
+                <th className="py-1.5 pr-2">Seq</th>
+                <th className="py-1.5 px-2">Timestamp (UTC)</th>
+                <th className="py-1.5 px-2">Scenario</th>
+                <th className="py-1.5 px-2 text-right">Voltage</th>
+                <th className="py-1.5 px-2 text-right">Current</th>
+                <th className="py-1.5 px-2 text-right">Power</th>
+                <th className="py-1.5 px-2 text-right">Temp</th>
+                <th className="py-1.5 pl-2 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#1B1D25] text-[11px]">
+              {eventFeed.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-3 text-center text-[#8A8594]">
+                    Receiving global telemetry events from shared broadcast loop...
+                  </td>
+                </tr>
+              ) : (
+                eventFeed.map((evt, idx) => (
+                  <tr key={`${evt.sequence}-${idx}`} className={idx === 0 ? "bg-[#1E202B]/60 text-white font-semibold" : "text-[#9D8EB5]"}>
+                    <td className="py-1.5 pr-2 font-bold text-[#F5D061]">#{evt.sequence}</td>
+                    <td className="py-1.5 px-2 font-mono text-[10px]">{evt.timestamp}</td>
+                    <td className="py-1.5 px-2">
+                      <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
+                        evt.scenario === "NORMAL" ? "text-emerald-400 bg-emerald-950/30" : "text-red-400 bg-red-950/30"
+                      }`}>
+                        {evt.scenario}
+                      </span>
+                    </td>
+                    <td className="py-1.5 px-2 text-right text-[#E2E1E6]">{evt.voltage_v.toFixed(1)} V</td>
+                    <td className="py-1.5 px-2 text-right text-[#E2E1E6]">{evt.current_a.toFixed(1)} A</td>
+                    <td className="py-1.5 px-2 text-right font-bold text-amber-300">{evt.active_power_kw.toFixed(1)} kW</td>
+                    <td className="py-1.5 px-2 text-right text-[#9D8EB5]">{evt.temperature_c.toFixed(1)} °C</td>
+                    <td className="py-1.5 pl-2 text-center">
+                      <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
+                        evt.status === "OPERATIONAL" ? "text-emerald-400" : "text-red-400"
+                      }`}>
+                        {evt.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* 3. MIDDLE SECTION: SINGLE POINT OF FAILURE (SPOF) & ACTIVE INCIDENTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

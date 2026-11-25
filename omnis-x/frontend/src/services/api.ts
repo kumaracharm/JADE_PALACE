@@ -104,6 +104,16 @@ export class DigitalTwinApi {
     }
   }
 
+  static async getDemoState(): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/demo/state`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      return null;
+    }
+  }
+
   static async triggerDemoInterrupt(): Promise<any> {
     const res = await fetch(`${API_BASE}/demo/interrupt`, { method: "POST", headers: DEFAULT_HEADERS });
     return await res.json();
@@ -116,6 +126,31 @@ export class DigitalTwinApi {
 
   static async triggerDemoRestore(): Promise<any> {
     const res = await fetch(`${API_BASE}/demo/restore`, { method: "POST", headers: DEFAULT_HEADERS });
+    return await res.json();
+  }
+
+  static async triggerScenarioStart(scenario = "FEEDER_FAILURE", entityId = "FEEDER-LABS-F1"): Promise<any> {
+    const res = await fetch(`${API_BASE}/demo/scenario/start`, {
+      method: "POST",
+      headers: DEFAULT_HEADERS,
+      body: JSON.stringify({ scenario, entity_id: entityId }),
+    });
+    return await res.json();
+  }
+
+  static async triggerScenarioStop(): Promise<any> {
+    const res = await fetch(`${API_BASE}/demo/scenario/stop`, {
+      method: "POST",
+      headers: DEFAULT_HEADERS,
+    });
+    return await res.json();
+  }
+
+  static async triggerScenarioRestore(): Promise<any> {
+    const res = await fetch(`${API_BASE}/demo/scenario/restore`, {
+      method: "POST",
+      headers: DEFAULT_HEADERS,
+    });
     return await res.json();
   }
 

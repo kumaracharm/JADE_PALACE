@@ -43,6 +43,83 @@ export function ResponseWorkspace({
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [verificationDone, setVerificationDone] = useState<boolean>(false);
 
+  // Global Synchronized Telemetry Stream State
+  const [streamData, setStreamData] = useState<{
+    sequence: number;
+    timestamp: string;
+    scenario: string;
+    voltage_v: number;
+    current_a: number;
+    active_power_kw: number;
+    temperature_c: number;
+    status: string;
+    incident_id: string;
+  }>({
+    sequence: 1000,
+    timestamp: "",
+    scenario: "NORMAL",
+    voltage_v: 415.0,
+    current_a: 198.0,
+    active_power_kw: 142.5,
+    temperature_c: 23.4,
+    status: "OPERATIONAL",
+    incident_id: "INC-DEMO-01",
+  });
+  const [isSseConnected, setIsSseConnected] = useState<boolean>(false);
+
+  // Real-time Global SSE Stream Subscription
+  useEffect(() => {
+    let eventSource: EventSource | null = null;
+    let reconnectTimer: any = null;
+    let isMounted = true;
+
+    const connectSse = () => {
+      try {
+        eventSource = new EventSource("http://127.0.0.1:8000/api/v1/demo/stream");
+        eventSource.onopen = () => {
+          if (isMounted) setIsSseConnected(true);
+        };
+        eventSource.onmessage = (event) => {
+          if (!isMounted) return;
+          try {
+            const data = JSON.parse(event.data);
+            setIsSseConnected(true);
+            setStreamData((prev) => ({
+              sequence: data.sequence ?? prev.sequence,
+              timestamp: data.timestamp ?? prev.timestamp,
+              scenario: data.scenario ?? data.demo_state ?? prev.scenario,
+              voltage_v: data.voltage_v ?? data.telemetry?.voltage_v ?? prev.voltage_v,
+              current_a: data.current_a ?? data.telemetry?.current_a ?? prev.current_a,
+              active_power_kw: data.active_power_kw ?? data.telemetry?.active_power_kw ?? prev.active_power_kw,
+              temperature_c: data.temperature_c ?? data.telemetry?.temperature_c ?? prev.temperature_c,
+              status: data.status ?? prev.status,
+              incident_id: data.incident_id ?? prev.incident_id,
+            }));
+          } catch (e) {}
+        };
+        eventSource.onerror = () => {
+          if (isMounted) setIsSseConnected(false);
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          if (isMounted) reconnectTimer = setTimeout(connectSse, 2000);
+        };
+      } catch (err) {
+        console.warn("SSE connection error in ResponseWorkspace:", err);
+        if (isMounted) reconnectTimer = setTimeout(connectSse, 3000);
+      }
+    };
+
+    connectSse();
+
+    return () => {
+      isMounted = false;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (eventSource) eventSource.close();
+    };
+  }, []);
+
   useEffect(() => {
     DigitalTwinApi.getIncidents().then((incs) => {
       setIncidents(incs);
@@ -238,6 +315,104 @@ export function ResponseWorkspace({
               ))
             )}
           </select>
+        </div>
+      </div>
+
+      {/* Real-Time Telemetry & Incident Intelligence Stream Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-[#17151D] via-[#14151C] to-[#191924] border border-[#3B3449] shadow-xl text-xs font-mono gap-3">
+        <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
+          <span className={`w-2.5 h-2.5 rounded-full ${isSseConnected ? "bg-emerald-400 animate-ping" : "bg-amber-500"}`} />
+          <span className="font-bold text-[#FFFFFF] tracking-wider">
+            SYNCHRONIZED GLOBAL STREAM
+          </span>
+          <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
+            {isSseConnected ? "LIVE SSE" : "CONNECTING..."}
+          </span>
+          <span className="text-[10px] px-2 py-0.5 rounded bg-[#D4AF37]/15 text-[#F5D061] border border-[#D4AF37]/30 font-bold">
+            SYNTHETIC LIVE DATA
+          </span>
+          <span className="text-[10px] px-2 py-0.5 rounded bg-[#2D2338] text-[#D4AF37] border border-[#58486D] font-bold">
+            SEQ #{streamData.sequence}
+          </span>
+        </div>
+
+        <div className="flex items-center space-x-3 text-[11px] text-[#A69FB1] flex-wrap gap-y-1">
+          <div>
+            <span className="text-[#767180]">TIME:</span>{" "}
+            <span className="text-[#FFFFFF] font-bold">
+              {streamData.timestamp ? new Date(streamData.timestamp).toLocaleTimeString([], { hour12: false }) : "--:--:--"}
+            </span>
+          </div>
+          <span>•</span>
+          <div>
+            <span className="text-[#767180]">TARGET INCIDENT:</span>{" "}
+            <span className="text-[#F5D061] font-bold">{selectedIncidentId || streamData.incident_id}</span>
+          </div>
+          <span>•</span>
+          <div>
+            <span className="text-[#767180]">GRID VOLTAGE:</span>{" "}
+            <span className="text-[#FFFFFF] font-bold">{streamData.voltage_v.toFixed(1)} V</span>
+          </div>
+          <span>•</span>
+          <div>
+            <span className="text-[#767180]">LOAD:</span>{" "}
+            <span className={`font-bold ${streamData.status === "OFFLINE_TRIPPED" || streamData.scenario === "FEEDER_FAILURE" ? "text-red-400" : "text-emerald-400"}`}>
+              {streamData.status === "OFFLINE_TRIPPED" || streamData.scenario === "FEEDER_FAILURE" ? "0.0 kW (TRIPPED)" : `${streamData.active_power_kw.toFixed(1)} kW`}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 7-Engines Incident Response Progression Timeline */}
+      <div className="p-3.5 rounded-xl bg-[#14151A] border border-[#252833] font-mono text-xs">
+        <div className="flex items-center justify-between pb-2 border-b border-[#252833] mb-3">
+          <div className="flex items-center space-x-2">
+            <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+            <span className="font-bold uppercase text-[#FFFFFF]">
+              7-Engine Incident Intelligence Pipeline (Continuous Synchronization)
+            </span>
+          </div>
+          <span className="text-[10px] text-[#8A8594]">
+            Sequence Alignment: <strong className="text-emerald-400">#{streamData.sequence}</strong>
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-center text-[10px]">
+          <div className="p-2 rounded bg-[#1B1D25] border border-emerald-500/40 text-emerald-300">
+            <div className="font-bold text-[9px] text-emerald-400">1. DETECTION</div>
+            <div className="truncate mt-1">EWMA Ingest</div>
+            <div className="text-[8px] text-[#767180] mt-0.5">Confidence 99%</div>
+          </div>
+          <div className="p-2 rounded bg-[#1B1D25] border border-red-500/40 text-red-300">
+            <div className="font-bold text-[9px] text-red-400">2. BLAST RADIUS</div>
+            <div className="truncate mt-1">Graph Traversal</div>
+            <div className="text-[8px] text-[#767180] mt-0.5">5 Entities</div>
+          </div>
+          <div className="p-2 rounded bg-[#1B1D25] border border-[#D4AF37]/40 text-[#F5D061]">
+            <div className="font-bold text-[9px] text-[#D4AF37]">3. FMEA RISK</div>
+            <div className="truncate mt-1">RPN Score 96</div>
+            <div className="text-[8px] text-[#767180] mt-0.5">Mission Critical</div>
+          </div>
+          <div className="p-2 rounded bg-[#1B1D25] border border-[#9D8EB5]/40 text-[#BDB0D3]">
+            <div className="font-bold text-[9px] text-[#9D8EB5]">4. ACADEMIC</div>
+            <div className="truncate mt-1">95 Displaced</div>
+            <div className="text-[8px] text-[#767180] mt-0.5">Relocate CR-201</div>
+          </div>
+          <div className="p-2 rounded bg-[#1B1D25] border border-emerald-500/40 text-emerald-300">
+            <div className="font-bold text-[9px] text-emerald-400">5. RECOVERY</div>
+            <div className="truncate mt-1">OR-Tools CP-SAT</div>
+            <div className="text-[8px] text-[#767180] mt-0.5">Pareto Optimum</div>
+          </div>
+          <div className="p-2 rounded bg-[#1B1D25] border border-[#9D8EB5]/40 text-[#BDB0D3]">
+            <div className="font-bold text-[9px] text-[#9D8EB5]">6. RACI MATRIX</div>
+            <div className="truncate mt-1">Dispatch Crew</div>
+            <div className="text-[8px] text-[#767180] mt-0.5">Facility Lead</div>
+          </div>
+          <div className="p-2 rounded bg-[#1B1D25] border border-[#D4AF37]/40 text-[#F5D061]">
+            <div className="font-bold text-[9px] text-[#D4AF37]">7. APPROVAL</div>
+            <div className="truncate mt-1">{approvalStatus === "APPROVED" ? "APPROVED" : "AWAITING SIGN-OFF"}</div>
+            <div className="text-[8px] text-[#767180] mt-0.5">Principal Role</div>
+          </div>
         </div>
       </div>
 

@@ -89,34 +89,73 @@ export function CampusCanvas3D({
     active_power_kw?: number;
     current_a?: number;
     temperature_c?: number;
+    sequence?: number;
+    timestamp?: string;
+    scenario?: string;
+    status?: string;
+    entity_id?: string;
   }>({
     voltage_v: 415.0,
     active_power_kw: 142.5,
     current_a: 198.0,
     temperature_c: 23.4,
+    sequence: 1000,
+    timestamp: "",
+    scenario: "NORMAL",
+    status: "OPERATIONAL",
+    entity_id: "FEEDER-LABS-F1",
   });
   const [isSseConnected, setIsSseConnected] = useState<boolean>(false);
 
   useEffect(() => {
     let eventSource: EventSource | null = null;
-    try {
-      eventSource = new EventSource("http://127.0.0.1:8000/api/v1/demo/stream");
-      eventSource.onopen = () => setIsSseConnected(true);
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data?.telemetry) {
-            setLiveTelemetry(data.telemetry);
+    let reconnectTimer: any = null;
+    let isMounted = true;
+
+    const connectSse = () => {
+      try {
+        eventSource = new EventSource("http://127.0.0.1:8000/api/v1/demo/stream");
+        eventSource.onopen = () => {
+          if (isMounted) setIsSseConnected(true);
+        };
+        eventSource.onmessage = (event) => {
+          if (!isMounted) return;
+          try {
+            const data = JSON.parse(event.data);
             setIsSseConnected(true);
+            setLiveTelemetry((prev) => ({
+              ...prev,
+              voltage_v: data.voltage_v ?? data.telemetry?.voltage_v ?? prev.voltage_v,
+              active_power_kw: data.active_power_kw ?? data.telemetry?.active_power_kw ?? prev.active_power_kw,
+              current_a: data.current_a ?? data.telemetry?.current_a ?? prev.current_a,
+              temperature_c: data.temperature_c ?? data.telemetry?.temperature_c ?? prev.temperature_c,
+              sequence: data.sequence ?? prev.sequence,
+              timestamp: data.timestamp ?? prev.timestamp,
+              scenario: data.scenario ?? data.demo_state ?? prev.scenario,
+              status: data.status ?? prev.status,
+              entity_id: data.entity_id ?? prev.entity_id,
+            }));
+          } catch (err) {}
+        };
+        eventSource.onerror = () => {
+          if (isMounted) setIsSseConnected(false);
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
           }
-        } catch (err) {}
-      };
-      eventSource.onerror = () => setIsSseConnected(false);
-    } catch (e) {
-      console.warn("SSE connection error in CampusCanvas3D:", e);
-    }
+          if (isMounted) reconnectTimer = setTimeout(connectSse, 2000);
+        };
+      } catch (e) {
+        console.warn("SSE connection error in CampusCanvas3D:", e);
+        if (isMounted) reconnectTimer = setTimeout(connectSse, 3000);
+      }
+    };
+
+    connectSse();
 
     return () => {
+      isMounted = false;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
       if (eventSource) eventSource.close();
     };
   }, []);
@@ -1489,17 +1528,28 @@ export function CampusCanvas3D({
         <div className="hidden md:flex items-center space-x-2.5 px-3 py-1.5 rounded-lg bg-[#14151A]/95 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-2xl text-xs font-mono">
           <span className="flex items-center space-x-1.5 text-[11px] font-bold text-emerald-400">
             <span className={`w-2 h-2 rounded-full ${isSseConnected ? "bg-emerald-400 animate-pulse" : "bg-amber-500"}`} />
-            <span>{isSseConnected ? "LIVE" : "CONNECTING"}</span>
+            <span>{isSseConnected ? "LIVE SSE" : "CONNECTING"}</span>
           </span>
           <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#2D2A38] text-[#BDB0D3] font-bold border border-[#5E5073]/50">
             SYNTHETIC LIVE DATA
           </span>
-          <div className="flex items-center space-x-2.5 text-[11px] text-gray-300">
+          <span className="text-[10px] font-bold text-[#D4AF37]">
+            SEQ #{liveTelemetry.sequence || 1000}
+          </span>
+          <span className="text-[10px] text-gray-400">
+            {liveTelemetry.timestamp ? new Date(liveTelemetry.timestamp).toLocaleTimeString([], { hour12: false }) : ""}
+          </span>
+          <span className="text-gray-600">|</span>
+          <div className="flex items-center space-x-2 text-[11px] text-gray-300">
             <span>VOLT: <strong className="text-amber-400 font-mono">{liveTelemetry.voltage_v?.toFixed(1) || "415.0"} V</strong></span>
             <span className="text-gray-600">|</span>
-            <span>POWER: <strong className="text-amber-400 font-mono">{liveTelemetry.active_power_kw?.toFixed(1) || "142.5"} kW</strong></span>
+            <span>POWER: <strong className={`font-mono ${liveTelemetry.status === "OFFLINE_TRIPPED" || liveTelemetry.scenario === "FEEDER_FAILURE" ? "text-red-400" : "text-amber-400"}`}>
+              {liveTelemetry.status === "OFFLINE_TRIPPED" || liveTelemetry.scenario === "FEEDER_FAILURE" ? "0.0 kW (TRIPPED)" : `${liveTelemetry.active_power_kw?.toFixed(1) || "142.5"} kW`}
+            </strong></span>
             <span className="text-gray-600">|</span>
             <span>CURR: <strong className="text-amber-400 font-mono">{liveTelemetry.current_a?.toFixed(1) || "198.0"} A</strong></span>
+            <span className="text-gray-600">|</span>
+            <span>TEMP: <strong className="text-purple-300 font-mono">{liveTelemetry.temperature_c?.toFixed(1) || "23.4"} °C</strong></span>
           </div>
         </div>
 
@@ -1603,10 +1653,10 @@ export function CampusCanvas3D({
       </div>
 
       {/* 4. COMPACT FLOATING INSPECTION POPOVER WHEN AN ITEM IS SELECTED (Positioned safely top-left under HUD) */}
-      {selectedRoom && !selectedEntityId && (
-        <div className="absolute top-14 left-3 p-3 rounded-lg bg-[#14151A]/95 border border-[#D4AF37]/50 backdrop-blur-md pointer-events-auto shadow-2xl max-w-[260px] z-20 font-mono text-xs">
+      {selectedRoom && (
+        <div className="absolute top-14 left-3 p-3 rounded-lg bg-[#14151A]/95 border border-[#D4AF37]/50 backdrop-blur-md pointer-events-auto shadow-2xl max-w-[280px] z-20 font-mono text-xs">
           <div className="flex items-center justify-between pb-1.5 border-b border-[#252833] mb-2">
-            <span className="text-[#FFFFFF] font-bold truncate max-w-[170px]">{selectedRoom.name}</span>
+            <span className="text-[#FFFFFF] font-bold truncate max-w-[190px]">{selectedRoom.name}</span>
             <button
               onClick={() => onSelectEntity("")}
               className="text-[#8A8594] hover:text-[#FFFFFF] p-0.5"
@@ -1615,30 +1665,56 @@ export function CampusCanvas3D({
               ×
             </button>
           </div>
-          <div className="space-y-1 text-[10px] text-[#A69FB1]">
+          <div className="space-y-1.5 text-[10px] text-[#A69FB1]">
             <div className="flex justify-between">
               <span className="text-[#767180]">Code:</span>
               <span className="text-[#F5D061] font-bold">{selectedRoom.code}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#767180]">Standard Load:</span>
-              <span className="text-[#FFFFFF]">{selectedRoom.standardLoadKW} kW</span>
+              <span className="text-[#767180]">Entity ID:</span>
+              <span className="text-[#FFFFFF]">{selectedRoom.backendEntityId || selectedRoom.id}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#767180]">Live Voltage:</span>
+              <span className="text-[#E2E1E6] font-bold">
+                {incidentAffectedIds.has(selectedRoom.id) ||
+                (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId)) ||
+                liveTelemetry.scenario === "FEEDER_FAILURE"
+                  ? "0.0 V (COLLAPSE)"
+                  : `${liveTelemetry.voltage_v?.toFixed(1) || "415.0"} V`}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#767180]">Live Active Load:</span>
+              <span className="text-amber-400 font-bold">
+                {incidentAffectedIds.has(selectedRoom.id) ||
+                (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId)) ||
+                liveTelemetry.scenario === "FEEDER_FAILURE"
+                  ? "0.0 kW (TRIPPED)"
+                  : `${liveTelemetry.active_power_kw?.toFixed(1) || selectedRoom.standardLoadKW} kW`}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-[#767180]">Status:</span>
               <span
                 className={
                   incidentAffectedIds.has(selectedRoom.id) ||
-                  (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId))
+                  (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId)) ||
+                  liveTelemetry.scenario === "FEEDER_FAILURE"
                     ? "text-[#EF4444] font-bold"
                     : "text-[#10B981] font-bold"
                 }
               >
                 {incidentAffectedIds.has(selectedRoom.id) ||
-                (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId))
-                  ? "SEVERED"
-                  : "NOMINAL"}
+                (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId)) ||
+                liveTelemetry.scenario === "FEEDER_FAILURE"
+                  ? "SEVERED (TRIPPED)"
+                  : "NOMINAL (OPERATIONAL)"}
               </span>
+            </div>
+            <div className="pt-1.5 border-t border-[#252833] flex justify-between text-[9px] text-[#767180]">
+              <span>Stream: <strong className="text-[#D4AF37]">SYNTHETIC LIVE DATA</strong></span>
+              <span>Seq: <strong className="text-emerald-400">#{liveTelemetry.sequence || 1000}</strong></span>
             </div>
           </div>
         </div>
