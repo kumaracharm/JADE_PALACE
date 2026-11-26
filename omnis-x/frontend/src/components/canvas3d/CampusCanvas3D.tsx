@@ -1627,7 +1627,8 @@ export function CampusCanvas3D({
         current.incidentAffectedIds.size > 0 ||
         liveScenarioType !== "NORMAL" ||
         current.liveTelemetry?.status === "OFFLINE_TRIPPED" ||
-        current.simulationActive;
+        current.simulationActive ||
+        (current.liveTelemetry?.voltage_v !== undefined && current.liveTelemetry.voltage_v < 390);
 
       if (hasInjectedIssue) {
         let affId = "FEEDER-LABS-F1";

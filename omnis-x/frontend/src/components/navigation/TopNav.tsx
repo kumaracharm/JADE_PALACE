@@ -141,6 +141,9 @@ export function TopNav({
       const s = AuthService.demoLogin(role);
       setAuthSession(s);
       setIsRoleDropdownOpen(false);
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
     } catch (e) {
       console.warn("Role switch error:", e);
     }
@@ -150,6 +153,9 @@ export function TopNav({
     AuthService.logout();
     setAuthSession(null);
     setIsRoleDropdownOpen(false);
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
   };
 
   // Filter entities by search query
@@ -489,13 +495,16 @@ export function TopNav({
                     return (
                       <button
                         key={char.role}
-                        onClick={async () => {
-                          const s = await AuthService.demoLogin(char.role);
+                        onClick={() => {
+                          const s = AuthService.demoLogin(char.role);
                           setAuthSession(s);
                           if (onSelectPersona) {
                             onSelectPersona(char.persona);
                           }
                           setIsRoleDropdownOpen(false);
+                          if (typeof window !== "undefined") {
+                            window.location.reload();
+                          }
                         }}
                         className={`w-full text-left p-2 rounded-lg border transition-all flex items-center justify-between cursor-pointer ${
                           isCurrent
