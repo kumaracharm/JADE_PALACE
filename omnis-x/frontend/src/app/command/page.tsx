@@ -15,8 +15,8 @@ import { AuthService, AuthSession } from "@/services/auth";
 
 export default function CommandPage() {
   const router = useRouter();
-  const [currentPersona, setCurrentPersona] = useState<PersonaProfile>(KUNG_FU_PANDA_PERSONAS[0]); // Master Oogway (Principal)
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
+  const [selectedPersona, setSelectedPersona] = useState<PersonaProfile | null>(null);
   const [isAuthLoaded, setIsAuthLoaded] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -32,9 +32,28 @@ export default function CommandPage() {
 
     const unsub = AuthService.onAuthChange((newSession) => {
       setAuthSession(newSession);
+      setSelectedPersona(null);
     });
     return () => unsub();
   }, []);
+
+  const currentPersona = React.useMemo(() => {
+    if (selectedPersona) return selectedPersona;
+    switch (authSession?.user.role) {
+      case "SUPER_ADMIN":
+        return KUNG_FU_PANDA_PERSONAS[0]; // Master Oogway
+      case "FACILITY_MANAGER":
+        return KUNG_FU_PANDA_PERSONAS[2]; // Master Tigress
+      case "HOD_ACADEMIC":
+        return KUNG_FU_PANDA_PERSONAS[1]; // Master Shifu
+      case "TECHNICIAN":
+        return KUNG_FU_PANDA_PERSONAS[6] || KUNG_FU_PANDA_PERSONAS[3]; // Master Mantis
+      case "STUDENT":
+        return KUNG_FU_PANDA_PERSONAS[5]; // Po
+      default:
+        return KUNG_FU_PANDA_PERSONAS[0];
+    }
+  }, [authSession?.user.role, selectedPersona]);
 
   if (isAuthLoaded && !authSession) {
     return (
@@ -89,12 +108,13 @@ export default function CommandPage() {
         onOpenReportModal={() => setIsReportOpen(true)}
         onOpenProfile={() => setIsLoginOpen(true)}
         currentPersona={currentPersona}
-        onSelectPersona={setCurrentPersona}
+        onSelectPersona={setSelectedPersona}
         onReplayIntro={() => setShowLaunch(true)}
       />
 
       <main className="flex-1 w-full overflow-hidden relative">
         <CommandWorkspace
+          key={authSession?.user.role || "guest"}
           currentPersona={currentPersona}
           onNavigateToTwin={(entityId) => {
             if (entityId) router.push(`/twin?entity=${encodeURIComponent(entityId)}`);
@@ -121,7 +141,7 @@ export default function CommandPage() {
         defaultRole="SUPER_ADMIN"
         appTitle="OMNIS-X COMMAND — SOVEREIGN CONTROL CLEARANCE"
         onLoginSuccess={(persona) => {
-          setCurrentPersona(persona);
+          setSelectedPersona(persona);
           setIsLoginOpen(false);
         }}
       />
@@ -145,7 +165,7 @@ export default function CommandPage() {
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         currentPersona={currentPersona}
-        onSelectPersona={setCurrentPersona}
+        onSelectPersona={setSelectedPersona}
       />
     </div>
   );

@@ -15,6 +15,7 @@ import { GlassLoginModal } from "@/components/auth/GlassLoginModal";
 import { KungFuPandaProfile, KUNG_FU_PANDA_PERSONAS, PersonaProfile } from "@/components/profile/KungFuPandaProfile";
 import { CampusEntity, ActiveLayerId } from "@/types/digital-twin";
 import { DigitalTwinApi } from "@/services/api";
+import { Zap } from "lucide-react";
 
 function TwinContent() {
   const router = useRouter();
@@ -103,6 +104,76 @@ function TwinContent() {
       <div className="flex flex-1 w-full h-full overflow-hidden relative min-h-0 min-w-0">
         {/* Center: Authoritative Spatial Viewport (100% Full Screen Wireframe Model) */}
         <main className="w-full h-full overflow-hidden relative min-h-0 min-w-0">
+          {/* Floating 3-Anomaly Quick Injection Bar */}
+          <div className="absolute top-3 left-3 sm:left-4 z-20 flex items-center space-x-1.5 p-1 rounded-xl bg-[#0E0F14]/90 border border-[#252833] backdrop-blur-md shadow-2xl font-mono text-xs pointer-events-auto">
+            <span className="text-[9px] text-[#F5D061] font-bold px-2 uppercase tracking-wider flex items-center space-x-1">
+              <Zap className="w-3 h-3 text-amber-400" />
+              <span className="hidden sm:inline">INJECT FAULT:</span>
+            </span>
+            <button
+              onClick={() => {
+                setIncidentAffectedIds(new Set(["FEEDER-LABS-F1"]));
+                setSelectedEntityId("FEEDER-LABS-F1");
+                setCurrentFloor("FLOOR-2");
+                setSimulationActive(true);
+              }}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold flex items-center space-x-1 cursor-pointer transition-all active:scale-95 ${
+                incidentAffectedIds.has("FEEDER-LABS-F1")
+                  ? "bg-red-600 text-white border border-red-400 shadow-[0_0_12px_rgba(239,68,68,0.7)]"
+                  : "bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-500/50"
+              }`}
+              title="Inject Feeder F1 Trip (Research Labs / EE-101)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
+              <span>1. Feeder Trip</span>
+            </button>
+            <button
+              onClick={() => {
+                setIncidentAffectedIds(new Set(["FEEDER-CR-F2"]));
+                setSelectedEntityId("FEEDER-CR-F2");
+                setCurrentFloor("FLOOR-1");
+                setSimulationActive(true);
+              }}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold flex items-center space-x-1 cursor-pointer transition-all active:scale-95 ${
+                incidentAffectedIds.has("FEEDER-CR-F2")
+                  ? "bg-orange-600 text-white border border-orange-400 shadow-[0_0_12px_rgba(249,115,22,0.7)]"
+                  : "bg-orange-950/80 hover:bg-orange-900 text-orange-300 border border-orange-500/50"
+              }`}
+              title="Inject HVAC Thermal Fault (Academic Wing CR-104)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-ping" />
+              <span>2. HVAC Fault</span>
+            </button>
+            <button
+              onClick={() => {
+                setIncidentAffectedIds(new Set(["SUBSTATION-01"]));
+                setSelectedEntityId("SUBSTATION-01");
+                setCurrentFloor("FLOOR-G");
+                setSimulationActive(true);
+              }}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold flex items-center space-x-1 cursor-pointer transition-all active:scale-95 ${
+                incidentAffectedIds.has("SUBSTATION-01")
+                  ? "bg-sky-600 text-white border border-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.7)]"
+                  : "bg-sky-950/80 hover:bg-sky-900 text-sky-300 border border-sky-500/50"
+              }`}
+              title="Inject 11kV Substation Breaker Disruption"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping" />
+              <span>3. Substation Trip</span>
+            </button>
+            <button
+              onClick={() => {
+                setIncidentAffectedIds(new Set());
+                setSelectedEntityId(null);
+                setSimulationActive(false);
+              }}
+              className="px-2 py-1 rounded-lg bg-[#14151C] hover:bg-[#1E202A] text-[#8E8B99] hover:text-white border border-[#252836] text-[10px] font-bold cursor-pointer transition-all"
+              title="Reset to normal grid baseline"
+            >
+              Reset
+            </button>
+          </div>
+
           <div className="w-full h-full relative overflow-hidden min-h-0 min-w-0">
             {twinViewMode === "CAMPUS_3D" ? (
               <CampusCanvas3D

@@ -36,8 +36,8 @@ export function InstitutionalCommandHero({
   onEnterCommandCentre,
   onExploreWorkspace,
 }: InstitutionalCommandHeroProps) {
-  // State: 'hero' -> 'login'
-  const [viewState, setViewState] = useState<"hero" | "login">("hero");
+  // State: Default directly to 'login' so user chooses their role immediately
+  const [viewState, setViewState] = useState<"hero" | "login">("login");
   const [selectedDemoRole, setSelectedDemoRole] = useState<DemoRole>("SUPER_ADMIN");
   const [usernameInput, setUsernameInput] = useState<string>("superadmin");
   const [passwordInput, setPasswordInput] = useState<string>("AdminPassword!123");
@@ -306,6 +306,13 @@ export function InstitutionalCommandHero({
                       acc.role === "TECHNICIAN" ? <Wrench className="w-4 h-4 text-orange-400" /> :
                       <UserCheck className="w-4 h-4 text-emerald-400" />;
 
+                    const kungFuName =
+                      acc.role === "SUPER_ADMIN" ? "Master Oogway" :
+                      acc.role === "FACILITY_MANAGER" ? "Master Tigress" :
+                      acc.role === "HOD_ACADEMIC" ? "Master Shifu" :
+                      acc.role === "TECHNICIAN" ? "Master Mantis" :
+                      "Po (Dragon Warrior)";
+
                     return (
                       <div
                         key={acc.role}
@@ -322,6 +329,9 @@ export function InstitutionalCommandHero({
                             <div>
                               <div className="flex items-center space-x-2">
                                 <span className="text-xs font-bold text-white">{acc.roleTitle}</span>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#F5D061] border border-[#D4AF37]/40 font-bold">
+                                  {kungFuName}
+                                </span>
                                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#0A0E1A] text-[#94A3B8] border border-[#1E293B]">
                                   {acc.username}
                                 </span>
@@ -329,7 +339,16 @@ export function InstitutionalCommandHero({
                               <div className="text-[10px] text-[#94A3B8]">{acc.fullName} • {acc.title}</div>
                             </div>
                           </div>
-                          {isSelected && <CheckCircle2 className="w-4 h-4 text-[#F5D061] shrink-0" />}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleInstantDemoLogin(acc.role);
+                            }}
+                            className="px-2.5 py-1 rounded bg-[#D4AF37]/20 hover:bg-[#D4AF37] text-[#F5D061] hover:text-black font-bold text-[10px] border border-[#D4AF37]/40 transition-colors cursor-pointer shrink-0"
+                          >
+                            Launch →
+                          </button>
                         </div>
 
                         {isSelected && (

@@ -346,6 +346,49 @@ export function CommandWorkspace({
           </div>
         </div>
 
+        {/* 3 Scenario Injection Buttons with Direct 3D Twin Pinpoint */}
+        <div className="p-3.5 rounded-xl bg-[#0F1118] border border-[#252838] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+          <div className="text-[11px] font-bold text-[#F5D061] uppercase tracking-wider shrink-0 flex items-center space-x-2">
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <span>INJECT 3D ANOMALY (PINPOINT IN TWIN):</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+            <button
+              onClick={() => {
+                DigitalTwinApi.triggerScenarioStart("FEEDER_FAILURE", "FEEDER-LABS-F1").catch(() => {});
+                onNavigateToTwin("FEEDER-LABS-F1");
+              }}
+              className="py-1.5 px-3 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-500/50 text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
+              <span>1. Feeder Trip (LABS F1)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                DigitalTwinApi.triggerScenarioStart("HVAC", "FEEDER-CR-F2").catch(() => {});
+                onNavigateToTwin("FEEDER-CR-F2");
+              }}
+              className="py-1.5 px-3 rounded-lg bg-orange-950/80 hover:bg-orange-900 text-orange-300 border border-orange-500/50 text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-orange-400 animate-ping" />
+              <span>2. HVAC Surge (CR-104)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                DigitalTwinApi.triggerScenarioStart("WATER", "SUBSTATION-01").catch(() => {});
+                onNavigateToTwin("SUBSTATION-01");
+              }}
+              className="py-1.5 px-3 rounded-lg bg-sky-950/80 hover:bg-sky-900 text-sky-300 border border-sky-500/50 text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
+              <span>3. 11kV Substation Breaker</span>
+            </button>
+          </div>
+        </div>
+
         {/* Operational Flow Graph (Full-width) */}
         <div className="rounded-xl bg-[#0D0E13] border border-[#222530] p-4 shadow-lg">
           <div className="flex items-center justify-between mb-3 text-[11px] font-bold text-white uppercase tracking-wider">
@@ -467,6 +510,49 @@ export function CommandWorkspace({
             <div className="text-[10px] text-[#8E8B99]">CHILLER LOOP TEMP</div>
             <div className="text-lg font-bold text-purple-300 mt-1">{demoTelemetry.temperature_c.toFixed(1)} °C</div>
             <div className="text-[9px] text-[#8E8B99] mt-1">Set Point: 22.0°C</div>
+          </div>
+        </div>
+
+        {/* 3 Scenario Injection Buttons with Direct 3D Twin Pinpoint */}
+        <div className="p-3.5 rounded-xl bg-[#0F1118] border border-[#252838] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+          <div className="text-[11px] font-bold text-orange-400 uppercase tracking-wider shrink-0 flex items-center space-x-2">
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <span>INJECT 3D ANOMALY (PINPOINT IN TWIN):</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+            <button
+              onClick={() => {
+                DigitalTwinApi.triggerScenarioStart("FEEDER_FAILURE", "FEEDER-LABS-F1").catch(() => {});
+                onNavigateToTwin("FEEDER-LABS-F1");
+              }}
+              className="py-1.5 px-3 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-500/50 text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
+              <span>1. Feeder Trip (LABS F1)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                DigitalTwinApi.triggerScenarioStart("HVAC", "FEEDER-CR-F2").catch(() => {});
+                onNavigateToTwin("FEEDER-CR-F2");
+              }}
+              className="py-1.5 px-3 rounded-lg bg-orange-950/80 hover:bg-orange-900 text-orange-300 border border-orange-500/50 text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-orange-400 animate-ping" />
+              <span>2. HVAC Surge (CR-104)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                DigitalTwinApi.triggerScenarioStart("WATER", "SUBSTATION-01").catch(() => {});
+                onNavigateToTwin("SUBSTATION-01");
+              }}
+              className="py-1.5 px-3 rounded-lg bg-sky-950/80 hover:bg-sky-900 text-sky-300 border border-sky-500/50 text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
+              <span>3. 11kV Substation Breaker</span>
+            </button>
           </div>
         </div>
 

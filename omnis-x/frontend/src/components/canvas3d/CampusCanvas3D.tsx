@@ -1644,12 +1644,30 @@ export function CampusCanvas3D({
             (r) =>
               r.id === affId ||
               r.backendEntityId === affId ||
-              (affId === "FEEDER-LABS-F1" && r.id === "HV-203") ||
-              (affId === "SUBSTATION-01" && r.id === "SUB-01")
+              (affId === "FEEDER-LABS-F1" && (r.id === "HV-203" || r.id === "VLSI-201")) ||
+              (affId === "LAB-01-EE" && r.id === "VLSI-201") ||
+              (affId === "FEEDER-CR-F2" && (r.id === "CR-104" || r.id === "CR-101")) ||
+              (affId === "SUBSTATION-01" && r.id === "SUB-01") ||
+              (affId === "SUB-01" && r.id === "SUB-01")
           ) || CAMPUS_3D_ROOMS[0];
 
         if (affRoom) {
           hazardBeaconGroup.visible = true;
+
+          // Dynamic Beacon Colors Based on Injected Fault
+          if (affId === "FEEDER-CR-F2" || liveScenarioType === "HVAC") {
+            beaconColumnMat.color.setHex(0xf97316);
+            ringInnerMat.color.setHex(0xf97316);
+            diamondMat.color.setHex(0xfb923c);
+          } else if (affId === "SUBSTATION-01" || liveScenarioType === "WATER") {
+            beaconColumnMat.color.setHex(0x0284c7);
+            ringInnerMat.color.setHex(0x0284c7);
+            diamondMat.color.setHex(0x38bdf8);
+          } else {
+            beaconColumnMat.color.setHex(0xef4444);
+            ringInnerMat.color.setHex(0xef4444);
+            diamondMat.color.setHex(0xff3b30);
+          }
           const fIdx = CAMPUS_3D_LAYERS.findIndex((l) => l.id === affRoom.layerId);
           const roomFloorY =
             affRoom.layerId === "ground"
