@@ -520,6 +520,94 @@ export function CampusCanvas3D({
         fGroup.add(wallSouth);
       }
 
+      // Rooftop Architectural Parabolic Atrium Vault & Canopy Truss (Matching Reference Spec & Zoom Detail)
+      if (layer.id === "roof") {
+        const trussGroup = new THREE.Group();
+        fGroup.add(trussGroup);
+
+        const ribZPositions = [-1.4, -3.6];
+        const spanHalf = 2.4;
+        const archHeight = 3.6;
+        const numNodes = 20;
+
+        const allRibCurves: THREE.Vector3[][] = [];
+
+        ribZPositions.forEach((rz) => {
+          const ribPoints: THREE.Vector3[] = [];
+          for (let i = 0; i < numNodes; i++) {
+            const t = i / (numNodes - 1);
+            const x = -spanHalf + t * (spanHalf * 2);
+            const normalizedX = x / spanHalf;
+            const y = 0.25 + archHeight * (1 - normalizedX * normalizedX);
+            ribPoints.push(new THREE.Vector3(x, y, rz));
+          }
+          allRibCurves.push(ribPoints);
+
+          // 1. Rib continuous spline wireframe line
+          const ribGeom = new THREE.BufferGeometry().setFromPoints(ribPoints);
+          const ribLine = new THREE.Line(
+            ribGeom,
+            new THREE.LineBasicMaterial({
+              color: 0xd4af37,
+              transparent: true,
+              opacity: 0.85,
+            })
+          );
+          trussGroup.add(ribLine);
+
+          // 2. Base tie-beam chord connecting arch feet
+          const tieGeom = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(-spanHalf, 0.25, rz),
+            new THREE.Vector3(spanHalf, 0.25, rz),
+          ]);
+          const tieLine = new THREE.Line(
+            tieGeom,
+            new THREE.LineBasicMaterial({
+              color: 0xdec683,
+              transparent: true,
+              opacity: 0.75,
+            })
+          );
+          trussGroup.add(tieLine);
+
+          // 3. Square Structural Node Blocks along the arch (matching Image 3 detail)
+          ribPoints.forEach((pt) => {
+            const nodeMesh = new THREE.Mesh(
+              new THREE.BoxGeometry(0.18, 0.18, 0.18),
+              new THREE.MeshBasicMaterial({
+                color: 0xdec683,
+                transparent: true,
+                opacity: 0.95,
+              })
+            );
+            nodeMesh.position.copy(pt);
+            trussGroup.add(nodeMesh);
+          });
+        });
+
+        // 4. Longitudinal purlin beams connecting the two arch ribs
+        if (allRibCurves.length === 2) {
+          const [frontRib, backRib] = allRibCurves;
+          [0, 4, 9, 10, 15, 19].forEach((idx) => {
+            if (frontRib[idx] && backRib[idx]) {
+              const purlinGeom = new THREE.BufferGeometry().setFromPoints([
+                frontRib[idx],
+                backRib[idx],
+              ]);
+              const purlinLine = new THREE.Line(
+                purlinGeom,
+                new THREE.LineBasicMaterial({
+                  color: 0xdec683,
+                  transparent: true,
+                  opacity: 0.65,
+                })
+              );
+              trussGroup.add(purlinLine);
+            }
+          });
+        }
+      }
+
       // Rooms on this Floor
       const layerRooms = CAMPUS_3D_ROOMS.filter((r) => r.layerId === layer.id);
       layerRooms.forEach((room) => {

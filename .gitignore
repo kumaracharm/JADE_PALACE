@@ -44,6 +44,8 @@ temp_*/
 # OS / IDE
 .DS_Store
 Thumbs.db
+omnis-x/data/*.db
+*.db-journal
 .vscode/
 .idea/
 

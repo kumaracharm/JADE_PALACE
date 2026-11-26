@@ -223,6 +223,37 @@ def dispatch_record_to_engine(
 ) -> str:
     if not target_url:
         return "local_only"
+
+    # Also automatically bridge into OMNIS-X Niche Inbox on the same IP via X-OMNIS-API-KEY
+    try:
+        cfg = load_engine_config()
+        base_url = cfg.get("engine_base_url", "http://127.0.0.1:8000")
+        inbox_url = f"{base_url}/api/v1/inbox/dispatch"
+        api_header_name = cfg.get("engine_api_key_header", "X-OMNIS-API-KEY")
+        api_key_val = cfg.get("engine_api_key", "omnis_pwa_secret_key_2026")
+
+        inbox_payload = {
+            "title": f"[{record.get('room_code', 'CAMPUS')}] {record.get('title', 'Grievance Report')}",
+            "source": f"Oogway Student PWA (Port {cfg.get('pwa_port', 8090)})",
+            "category": record.get("category", "GRIEVANCE"),
+            "severity": record.get("severity", "MEDIUM"),
+            "message": record.get("description", ""),
+            "entity_id": resolve_entity_id(record.get("room_id", ""), record.get("backend_entity_id", "")),
+            "metadata": {
+                "reporter": record.get("student_name", "Anonymous"),
+                "equipment": record.get("equipment", ""),
+                "room": record.get("room_code", "")
+            }
+        }
+        post_json(
+            inbox_url,
+            inbox_payload,
+            extra_headers={api_header_name: api_key_val},
+            timeout=3
+        )
+    except Exception:
+        pass
+
     if mode == "omnisx" or "/api/v1/incidents" in target_url:
         payload = build_omnisx_incident_payload(record)
         return post_json(

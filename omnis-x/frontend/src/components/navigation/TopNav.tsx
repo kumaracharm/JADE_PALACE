@@ -19,10 +19,13 @@ import {
   GraduationCap,
   Wrench,
   UserCheck,
+  Inbox,
+  Bell,
 } from "lucide-react";
 import { CampusEntity } from "@/types/digital-twin";
 import { PersonaProfile, KUNG_FU_PANDA_PERSONAS } from "@/components/profile/KungFuPandaProfile";
 import { AuthService, AuthSession, DEMO_ACCOUNTS, DemoRole } from "@/services/auth";
+import { InboxDrawer } from "@/components/inbox/InboxDrawer";
 
 interface TopNavProps {
   currentFloor: string;
@@ -63,7 +66,24 @@ export function TopNav({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [inboxUnreadCount, setInboxUnreadCount] = useState<number>(3);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/api/v1/inbox/messages");
+        if (res.ok) {
+          const d = await res.json();
+          setInboxUnreadCount(d.unread_count ?? 0);
+        }
+      } catch (e) {}
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     setAuthSession(AuthService.getSession());
@@ -347,6 +367,21 @@ export function TopNav({
           <span>+ Report</span>
         </button>
 
+        {/* Niche Inbox Window Button (Independent PWA / Website Bridge on Same IP) */}
+        <button
+          onClick={() => setIsInboxOpen(true)}
+          className="relative flex items-center space-x-1.5 px-2 sm:px-2.5 py-1 text-xs font-mono rounded bg-[#1B1A24] border border-[#3E384D] hover:border-[#D4AF37] text-[#D8D2E6] hover:text-white transition-all flex-shrink-0 cursor-pointer"
+          title="Open Niche Inbox Window (Same-IP Independent PWA Bridge)"
+        >
+          <Inbox className="w-3.5 h-3.5 text-[#F5D061]" />
+          <span className="hidden sm:inline">Inbox</span>
+          {inboxUnreadCount > 0 && (
+            <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold bg-[#D4AF37] text-black shadow-sm animate-pulse">
+              {inboxUnreadCount}
+            </span>
+          )}
+        </button>
+
         {/* Student Grievance PWA Quick Launch */}
         <a
           href="http://localhost:8090"
@@ -562,6 +597,13 @@ export function TopNav({
           )}
         </div>
       </div>
+
+      {/* Niche Inbox Window Drawer (Same-IP Independent PWA Bridge) */}
+      <InboxDrawer
+        isOpen={isInboxOpen}
+        onClose={() => setIsInboxOpen(false)}
+        onSelectEntity={onSelectEntity}
+      />
     </header>
   );
 }
