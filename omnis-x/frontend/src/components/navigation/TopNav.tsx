@@ -36,6 +36,7 @@ interface TopNavProps {
   onOpenReportModal: () => void;
   onOpenProfile?: () => void;
   currentPersona?: PersonaProfile;
+  onSelectPersona?: (persona: PersonaProfile) => void;
   onReplayIntro?: () => void;
   twinViewMode?: "CAMPUS_3D" | "FLOORPLAN";
   onToggleTwinView?: (mode: "CAMPUS_3D" | "FLOORPLAN") => void;
@@ -53,6 +54,7 @@ export function TopNav({
   onOpenReportModal,
   onOpenProfile,
   currentPersona = KUNG_FU_PANDA_PERSONAS[0],
+  onSelectPersona,
   onReplayIntro,
   twinViewMode = "CAMPUS_3D",
   onToggleTwinView,
@@ -134,9 +136,9 @@ export function TopNav({
 
   const currentRoleStyle = getRoleStyle(authSession?.user.role);
 
-  const handleQuickSwitchRole = async (role: DemoRole) => {
+  const handleQuickSwitchRole = (role: DemoRole) => {
     try {
-      const s = await AuthService.demoLogin(role);
+      const s = AuthService.demoLogin(role);
       setAuthSession(s);
       setIsRoleDropdownOpen(false);
     } catch (e) {
@@ -381,9 +383,7 @@ export function TopNav({
             <div
               className={`w-7 h-7 rounded-full bg-[#1A1C24] border ${currentRoleStyle.border} flex items-center justify-center text-xs font-bold text-white shadow flex-shrink-0 overflow-hidden`}
             >
-              {authSession ? (
-                <span className="font-mono text-[10px]">{authSession.user.username.slice(0, 2).toUpperCase()}</span>
-              ) : currentPersona.photoUrl ? (
+              {currentPersona.photoUrl ? (
                 <img
                   src={currentPersona.photoUrl}
                   alt={currentPersona.characterName}
@@ -396,7 +396,7 @@ export function TopNav({
             <div className="hidden xl:block text-left flex-shrink-0">
               <div className="flex items-center space-x-1">
                 <span className="text-[11px] font-bold text-[#E2E1E6] truncate max-w-[110px]">
-                  {authSession?.user.full_name || currentPersona.characterName}
+                  {currentPersona.characterName}
                 </span>
                 <ChevronDown className="w-3 h-3 text-[#8A8594]" />
               </div>
@@ -422,11 +422,12 @@ export function TopNav({
                     {currentRoleStyle.label}
                   </span>
                 </div>
-                <div className="mt-2 text-[11px] text-[#E2E8F0] font-bold">
-                  {authSession?.user.full_name || "Institutional Operator"}
+                <div className="mt-2 text-[11px] text-[#E2E8F0] font-bold flex items-center space-x-2">
+                  <span>{currentPersona.characterName}</span>
+                  <span className="text-[9px] text-[#94A3B8]">({currentPersona.displayRole})</span>
                 </div>
                 <div className="text-[10px] text-[#94A3B8]">
-                  ID: {authSession?.user.user_id || "USR-DEMO"} • Dept: {authSession?.user.department || "Operations"}
+                  ID: {authSession?.user.user_id || currentPersona.userId} • Dept: {currentPersona.department}
                 </div>
                 <div className="mt-1 flex items-center space-x-1.5 text-[9px] text-[#64748B]">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -434,20 +435,68 @@ export function TopNav({
                 </div>
               </div>
 
-              {/* 1-Click Demo Role Switcher Matrix */}
+              {/* 1-Click Kung Fu Panda Role Switcher Matrix */}
               <div className="py-3">
                 <div className="text-[10px] font-bold text-[#F5D061] uppercase tracking-wider mb-2 flex items-center justify-between">
-                  <span>1-Click Role Switcher</span>
+                  <span>Kung Fu Panda Role Switcher</span>
                   <span className="text-[8px] text-[#94A3B8] font-normal">INSTANT EVALUATION</span>
                 </div>
 
                 <div className="space-y-1.5">
-                  {DEMO_ACCOUNTS.map((acc) => {
-                    const isCurrent = authSession?.user.role === acc.role;
+                  {[
+                    {
+                      persona: KUNG_FU_PANDA_PERSONAS[0],
+                      role: "SUPER_ADMIN" as DemoRole,
+                      name: "Master Oogway",
+                      title: "Campus Principal & Executive Directorate",
+                      badge: "SUPER ADMIN",
+                      dot: "bg-amber-400",
+                    },
+                    {
+                      persona: KUNG_FU_PANDA_PERSONAS[2],
+                      role: "FACILITY_MANAGER" as DemoRole,
+                      name: "Master Tigress",
+                      title: "Physical Infrastructure & Energy Directorate",
+                      badge: "FACILITY MGR",
+                      dot: "bg-orange-400",
+                    },
+                    {
+                      persona: KUNG_FU_PANDA_PERSONAS[1],
+                      role: "HOD_ACADEMIC" as DemoRole,
+                      name: "Master Shifu",
+                      title: "HOD Academic Coordinator (ECE / Dean)",
+                      badge: "HOD ACADEMIC",
+                      dot: "bg-purple-400",
+                    },
+                    {
+                      persona: KUNG_FU_PANDA_PERSONAS[6] || KUNG_FU_PANDA_PERSONAS[3],
+                      role: "TECHNICIAN" as DemoRole,
+                      name: "Master Mantis",
+                      title: "Rapid Response Field Technician",
+                      badge: "TECHNICIAN",
+                      dot: "bg-emerald-400",
+                    },
+                    {
+                      persona: KUNG_FU_PANDA_PERSONAS[5],
+                      role: "STUDENT" as DemoRole,
+                      name: "Po (Dragon Warrior)",
+                      title: "Student Delegate & Grievance PWA",
+                      badge: "STUDENT",
+                      dot: "bg-sky-400",
+                    },
+                  ].map((char) => {
+                    const isCurrent = authSession?.user.role === char.role || currentPersona.id === char.persona.id;
                     return (
                       <button
-                        key={acc.role}
-                        onClick={() => handleQuickSwitchRole(acc.role)}
+                        key={char.role}
+                        onClick={async () => {
+                          const s = await AuthService.demoLogin(char.role);
+                          setAuthSession(s);
+                          if (onSelectPersona) {
+                            onSelectPersona(char.persona);
+                          }
+                          setIsRoleDropdownOpen(false);
+                        }}
                         className={`w-full text-left p-2 rounded-lg border transition-all flex items-center justify-between cursor-pointer ${
                           isCurrent
                             ? "bg-[#1E293B] border-[#F5D061] text-white"
@@ -455,22 +504,15 @@ export function TopNav({
                         }`}
                       >
                         <div className="flex items-center space-x-2">
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              acc.role === "SUPER_ADMIN"
-                                ? "bg-amber-400"
-                                : acc.role === "FACILITY_MANAGER"
-                                ? "bg-sky-400"
-                                : acc.role === "HOD_ACADEMIC"
-                                ? "bg-purple-400"
-                                : acc.role === "TECHNICIAN"
-                                ? "bg-orange-400"
-                                : "bg-emerald-400"
-                            }`}
-                          />
+                          <span className={`w-2 h-2 rounded-full ${char.dot}`} />
+                          <div className="w-5 h-5 rounded-full overflow-hidden bg-black/40 shrink-0 border border-white/10">
+                            {char.persona.photoUrl && (
+                              <img src={char.persona.photoUrl} alt={char.name} className="w-full h-full object-cover" />
+                            )}
+                          </div>
                           <div>
-                            <div className="text-[10px] font-bold leading-none">{acc.roleTitle}</div>
-                            <div className="text-[8px] text-[#64748B] mt-0.5">{acc.username}</div>
+                            <div className="text-[10px] font-bold leading-none">{char.name}</div>
+                            <div className="text-[8px] text-[#64748B] mt-0.5 truncate max-w-[170px]">{char.badge} • {char.title}</div>
                           </div>
                         </div>
 

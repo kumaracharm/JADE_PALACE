@@ -94,23 +94,16 @@ function TwinContent() {
         onOpenReportModal={() => setIsReportOpen(true)}
         onOpenProfile={() => setIsLoginOpen(true)}
         currentPersona={currentPersona}
+        onSelectPersona={setCurrentPersona}
         onReplayIntro={() => setShowCinematicReveal(true)}
         twinViewMode={twinViewMode}
         onToggleTwinView={setTwinViewMode}
       />
 
       <div className="flex flex-1 w-full h-full overflow-hidden relative min-h-0 min-w-0">
-        {/* Left Tool Rail: Floor Isolation (G, L1, L2, L3) & Layer Toggles */}
-        <ToolRail
-          currentFloor={currentFloor}
-          onSelectFloor={setCurrentFloor}
-          activeLayers={activeLayers}
-          onToggleLayer={handleToggleLayer}
-        />
-
-        {/* Center: Authoritative Spatial Viewport (Full Screen Three.js 3D Model or 2D CAD Floor Plan) */}
-        <main className="flex-1 flex flex-col w-full h-full overflow-hidden relative min-h-0 min-w-0">
-          <div className="flex-1 w-full h-full relative overflow-hidden min-h-0 min-w-0">
+        {/* Center: Authoritative Spatial Viewport (100% Full Screen Wireframe Model) */}
+        <main className="w-full h-full overflow-hidden relative min-h-0 min-w-0">
+          <div className="w-full h-full relative overflow-hidden min-h-0 min-w-0">
             {twinViewMode === "CAMPUS_3D" ? (
               <CampusCanvas3D
                 selectedEntityId={selectedEntityId}
@@ -121,15 +114,25 @@ function TwinContent() {
                 onSelectFloor={setCurrentFloor}
               />
             ) : (
-              <FloorPlanCanvas
-                floorData={CAMPUS_FLOORS[currentFloor] || CAMPUS_FLOORS["FLOOR-1"]}
-                activeLayers={activeLayers}
-                selectedEntityId={selectedEntityId}
-                onSelectEntity={setSelectedEntityId}
-                entityMap={entityMap}
-                incidentAffectedIds={incidentAffectedIds}
-                simulationActive={simulationActive}
-              />
+              <div className="flex w-full h-full">
+                <ToolRail
+                  currentFloor={currentFloor}
+                  onSelectFloor={setCurrentFloor}
+                  activeLayers={activeLayers}
+                  onToggleLayer={handleToggleLayer}
+                />
+                <div className="flex-1 w-full h-full">
+                  <FloorPlanCanvas
+                    floorData={CAMPUS_FLOORS[currentFloor] || CAMPUS_FLOORS["FLOOR-1"]}
+                    activeLayers={activeLayers}
+                    selectedEntityId={selectedEntityId}
+                    onSelectEntity={setSelectedEntityId}
+                    entityMap={entityMap}
+                    incidentAffectedIds={incidentAffectedIds}
+                    simulationActive={simulationActive}
+                  />
+                </div>
+              </div>
             )}
           </div>
 

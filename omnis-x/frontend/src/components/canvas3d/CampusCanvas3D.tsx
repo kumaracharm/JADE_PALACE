@@ -85,6 +85,17 @@ export function CampusCanvas3D({
     isIncident: boolean;
   }[]>([]);
 
+  // Injected Anomaly Pinpoint HUD State
+  const [injectedPinpoint, setInjectedPinpoint] = useState<{
+    entityId: string;
+    name: string;
+    scenario: string;
+    status: string;
+    x: number;
+    y: number;
+    layerId: CampusLayerId;
+  } | null>(null);
+
   // Selected Entity Vector & Topology Edge Metadata
   const [selectedVectorInfo, setSelectedVectorInfo] = useState<{
     name: string;
@@ -263,6 +274,7 @@ export function CampusCanvas3D({
     incidentAffectedIds,
     selectedEntityId,
     liveTelemetry,
+    simulationActive,
   });
 
   useEffect(() => {
@@ -275,6 +287,7 @@ export function CampusCanvas3D({
       incidentAffectedIds,
       selectedEntityId,
       liveTelemetry,
+      simulationActive,
     };
   }, [
     selectedLayerId,
@@ -285,6 +298,7 @@ export function CampusCanvas3D({
     incidentAffectedIds,
     selectedEntityId,
     liveTelemetry,
+    simulationActive,
   ]);
 
   // Active selected room derived from selectedEntityId
@@ -303,7 +317,7 @@ export function CampusCanvas3D({
     lookAt: THREE.Vector3;
     isTransitioning: boolean;
   }>({
-    camPos: new THREE.Vector3(30, 24, 34),
+    camPos: new THREE.Vector3(19, 13, 21),
     lookAt: new THREE.Vector3(0, 5, 0),
     isTransitioning: true,
   });
@@ -340,7 +354,7 @@ export function CampusCanvas3D({
         break;
       case "iso":
       default:
-        ct.camPos.set(30, 24, 34);
+        ct.camPos.set(19, 13, 21);
         ct.lookAt.set(0, 5, 0);
         break;
     }
@@ -377,8 +391,8 @@ export function CampusCanvas3D({
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0e0f12);
 
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 200);
-    camera.position.set(30, 24, 34);
+    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 200);
+    camera.position.set(19, 13, 21);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -1238,36 +1252,10 @@ export function CampusCanvas3D({
       });
     });
 
-    // 5b. Selected Entity Flow Graph Connection Dot Matrix & Vector
+    // 5b. Selected Entity Clean Wireframe Box Highlight
     const selectedVectorGroup = new THREE.Group();
     campusRoot.add(selectedVectorGroup);
 
-    // Glowing Vector Line between Substation and Selected Room
-    const vectorLineGeom = new THREE.BufferGeometry();
-    const vectorLineMat = new THREE.LineBasicMaterial({
-      color: 0xd4af37,
-      transparent: true,
-      opacity: 0.9,
-      linewidth: 3,
-    });
-    const vectorLineMesh = new THREE.Line(vectorLineGeom, vectorLineMat);
-    selectedVectorGroup.add(vectorLineMesh);
-
-    // Dot Matrix Particle Flow along the Vector (24 dots)
-    const dotCount = 24;
-    const dotPositions = new Float32Array(dotCount * 3);
-    const dotGeom = new THREE.BufferGeometry();
-    dotGeom.setAttribute("position", new THREE.BufferAttribute(dotPositions, 3));
-    const dotMat = new THREE.PointsMaterial({
-      color: 0xf5d061,
-      size: 0.35,
-      transparent: true,
-      opacity: 0.95,
-    });
-    const dotParticles = new THREE.Points(dotGeom, dotMat);
-    selectedVectorGroup.add(dotParticles);
-
-    // Bounding Box Highlight with Corner Matrix Nodes for Selected Entity
     const boxGeom = new THREE.BoxGeometry(1, 1, 1);
     const boxEdges = new THREE.LineSegments(
       new THREE.EdgesGeometry(boxGeom),
@@ -1275,18 +1263,63 @@ export function CampusCanvas3D({
     );
     selectedVectorGroup.add(boxEdges);
 
-    // 8 Corner Vertex Nodes
-    const cornerDotsGeom = new THREE.BufferGeometry();
-    const cornerDotsPositions = new Float32Array(8 * 3);
-    cornerDotsGeom.setAttribute("position", new THREE.BufferAttribute(cornerDotsPositions, 3));
-    const cornerDotsMat = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.45,
+    // 5c. Injected Anomaly 3D Pinpoint Hazard Beacon
+    const hazardBeaconGroup = new THREE.Group();
+    campusRoot.add(hazardBeaconGroup);
+
+    const beaconColumnMat = new THREE.MeshBasicMaterial({
+      color: 0xef4444,
       transparent: true,
-      opacity: 1.0,
+      opacity: 0.75,
+      side: THREE.DoubleSide,
     });
-    const cornerDots = new THREE.Points(cornerDotsGeom, cornerDotsMat);
-    selectedVectorGroup.add(cornerDots);
+    const beaconColumn = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.5, 7.5, 16, 1, true),
+      beaconColumnMat
+    );
+    beaconColumn.position.y = 3.75;
+    hazardBeaconGroup.add(beaconColumn);
+
+    const ringInnerMat = new THREE.MeshBasicMaterial({
+      color: 0xef4444,
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide,
+    });
+    const ringInner = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.75, 32), ringInnerMat);
+    ringInner.rotation.x = -Math.PI / 2;
+    ringInner.position.y = 0.05;
+    hazardBeaconGroup.add(ringInner);
+
+    const ringOuterMat = new THREE.MeshBasicMaterial({
+      color: 0xf59e0b,
+      transparent: true,
+      opacity: 0.7,
+      side: THREE.DoubleSide,
+    });
+    const ringOuter = new THREE.Mesh(new THREE.RingGeometry(1.2, 1.45, 32), ringOuterMat);
+    ringOuter.rotation.x = -Math.PI / 2;
+    ringOuter.position.y = 0.05;
+    hazardBeaconGroup.add(ringOuter);
+
+    const diamondMat = new THREE.MeshBasicMaterial({
+      color: 0xff3b30,
+    });
+    const diamondMesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.65), diamondMat);
+    diamondMesh.position.y = 7.5;
+    hazardBeaconGroup.add(diamondMesh);
+
+    const diamondCageMat = new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      linewidth: 2,
+    });
+    const diamondCageMesh = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.OctahedronGeometry(0.75)),
+      diamondCageMat
+    );
+    diamondCageMesh.position.y = 7.5;
+    hazardBeaconGroup.add(diamondCageMesh);
+    hazardBeaconGroup.visible = false;
 
     // 6. Raycasting Setup for Room & Furniture Hover & Click
     const raycaster = new THREE.Raycaster();
@@ -1555,7 +1588,7 @@ export function CampusCanvas3D({
         }
       });
 
-      // 4b. Update Selected Entity Dot Matrix Vector & Edge Wireframe Highlight
+      // 4b. Update Selected Entity Wireframe Highlight (Clean Wireframe Box)
       if (current.selectedEntityId) {
         const targetRoom = CAMPUS_3D_ROOMS.find(
           (r) => r.backendEntityId === current.selectedEntityId || r.id === current.selectedEntityId
@@ -1567,28 +1600,12 @@ export function CampusCanvas3D({
             targetRoom.layerId === "ground"
               ? 0
               : (CAMPUS_3D_LAYERS[fIdx]?.elevationY || 0) + fIdx * current.explodedDistance;
-          const groundFloorY = 0;
 
-          const subPos = new THREE.Vector3(-11, groundFloorY + 1.2, -4.5);
           const roomPos = new THREE.Vector3(
             targetRoom.position[0],
             roomFloorY + targetRoom.position[1],
             targetRoom.position[2]
           );
-
-          // Update Vector Line
-          vectorLineGeom.setFromPoints([subPos, roomPos]);
-
-          // Animate Dot Matrix Particle Flow along Vector
-          const posAttr = dotGeom.getAttribute("position") as THREE.BufferAttribute;
-          for (let i = 0; i < dotCount; i++) {
-            const progress = (elapsed * 0.45 + i / dotCount) % 1.0;
-            const px = THREE.MathUtils.lerp(subPos.x, roomPos.x, progress);
-            const py = THREE.MathUtils.lerp(subPos.y, roomPos.y, progress) + Math.sin(progress * Math.PI) * 1.6;
-            const pz = THREE.MathUtils.lerp(subPos.z, roomPos.z, progress);
-            posAttr.setXYZ(i, px, py, pz);
-          }
-          posAttr.needsUpdate = true;
 
           // Position & Scale Bounding Wireframe Box
           const rWidth = (targetRoom.dimensions?.width || 8.0) * 1.05;
@@ -1597,25 +1614,95 @@ export function CampusCanvas3D({
 
           boxEdges.position.copy(roomPos);
           boxEdges.scale.set(rWidth, rHeight, rDepth);
-
-          // Update 8 Corner Vertex Nodes
-          const hw = rWidth / 2;
-          const hh = rHeight / 2;
-          const hd = rDepth / 2;
-          const cAttr = cornerDotsGeom.getAttribute("position") as THREE.BufferAttribute;
-          const corners = [
-            [-hw, -hh, -hd], [hw, -hh, -hd], [hw, hh, -hd], [-hw, hh, -hd],
-            [-hw, -hh, hd], [hw, -hh, hd], [hw, hh, hd], [-hw, hh, hd],
-          ];
-          corners.forEach(([cx, cy, cz], cIdx) => {
-            cAttr.setXYZ(cIdx, roomPos.x + cx, roomPos.y + cy, roomPos.z + cz);
-          });
-          cAttr.needsUpdate = true;
         } else {
           selectedVectorGroup.visible = false;
         }
       } else {
         selectedVectorGroup.visible = false;
+      }
+
+      // 4c. Injected Anomaly 3D Pinpoint Hazard Beacon Animation & Screen Projection
+      const liveScenarioType = current.liveTelemetry?.scenario || "NORMAL";
+      const hasInjectedIssue =
+        current.incidentAffectedIds.size > 0 ||
+        liveScenarioType !== "NORMAL" ||
+        current.liveTelemetry?.status === "OFFLINE_TRIPPED" ||
+        current.simulationActive;
+
+      if (hasInjectedIssue) {
+        let affId = "FEEDER-LABS-F1";
+        if (current.incidentAffectedIds.size > 0) {
+          affId = Array.from(current.incidentAffectedIds)[0];
+        } else if (current.liveTelemetry?.affected_entities?.length) {
+          affId = current.liveTelemetry.affected_entities[0];
+        } else if (current.liveTelemetry?.entity_id) {
+          affId = current.liveTelemetry.entity_id;
+        }
+
+        const affRoom =
+          CAMPUS_3D_ROOMS.find(
+            (r) =>
+              r.id === affId ||
+              r.backendEntityId === affId ||
+              (affId === "FEEDER-LABS-F1" && r.id === "HV-203") ||
+              (affId === "SUBSTATION-01" && r.id === "SUB-01")
+          ) || CAMPUS_3D_ROOMS[0];
+
+        if (affRoom) {
+          hazardBeaconGroup.visible = true;
+          const fIdx = CAMPUS_3D_LAYERS.findIndex((l) => l.id === affRoom.layerId);
+          const roomFloorY =
+            affRoom.layerId === "ground"
+              ? 0
+              : (CAMPUS_3D_LAYERS[fIdx]?.elevationY || 0) + fIdx * current.explodedDistance;
+
+          hazardBeaconGroup.position.set(
+            affRoom.position[0],
+            roomFloorY + affRoom.position[1],
+            affRoom.position[2]
+          );
+
+          // Animate pulse
+          const pulse = 0.5 + 0.5 * Math.sin(elapsed * 6);
+          beaconColumn.scale.set(1 + 0.25 * pulse, 1, 1 + 0.25 * pulse);
+          beaconColumnMat.opacity = 0.5 + 0.45 * pulse;
+          ringOuter.scale.setScalar(1 + 0.35 * Math.sin(elapsed * 4));
+          ringOuterMat.opacity = 0.3 + 0.5 * pulse;
+          diamondMesh.rotation.y = elapsed * 3.0;
+          diamondCageMesh.rotation.y = -elapsed * 2.2;
+          const bob = 0.35 * Math.sin(elapsed * 5);
+          diamondMesh.position.y = 7.5 + bob;
+          diamondCageMesh.position.y = 7.5 + bob;
+
+          // Project pinpoint to screen coordinates for HUD
+          if (container && Math.floor(elapsed * 60) % 3 === 0) {
+            const rect = container.getBoundingClientRect();
+            const beaconPos = new THREE.Vector3(
+              affRoom.position[0],
+              roomFloorY + affRoom.position[1] + 7.5 + bob,
+              affRoom.position[2]
+            );
+            beaconPos.project(camera);
+            if (beaconPos.z < 1.0) {
+              const sx = ((beaconPos.x + 1) * rect.width) / 2;
+              const sy = ((-beaconPos.y + 1) * rect.height) / 2;
+              setInjectedPinpoint({
+                entityId: affRoom.backendEntityId || affRoom.id,
+                name: affRoom.name,
+                scenario: liveScenarioType,
+                status: "OFFLINE_TRIPPED",
+                x: sx,
+                y: sy,
+                layerId: affRoom.layerId,
+              });
+            }
+          }
+        }
+      } else {
+        hazardBeaconGroup.visible = false;
+        if (injectedPinpoint !== null) {
+          setInjectedPinpoint(null);
+        }
       }
 
       // 5. Update Screen Space Tracking Overlay Tags
@@ -1757,6 +1844,81 @@ export function CampusCanvas3D({
           FRONT
         </button>
       </div>
+
+      {/* 2b. TOP INJECTED HAZARD PINPOINT BANNER */}
+      {injectedPinpoint && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-auto select-none max-w-[90vw]">
+          <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-red-950/90 border border-red-500/70 shadow-[0_0_25px_rgba(239,68,68,0.5)] backdrop-blur-md font-mono text-xs text-white animate-fadeIn">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shrink-0" />
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+            <div className="flex items-center space-x-1.5 truncate">
+              <span className="text-red-400 font-bold uppercase tracking-wider text-[10px]">INJECTED HAZARD:</span>
+              <span className="text-[#F5D061] font-black text-xs truncate">{injectedPinpoint.name}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-900/60 border border-red-500/50 text-red-200 font-mono">
+                {injectedPinpoint.entityId}
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                onSelectEntity(injectedPinpoint.entityId);
+                handleSelectLayer(injectedPinpoint.layerId);
+              }}
+              className="ml-2 px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-[10px] shadow-md transition-all cursor-pointer flex items-center space-x-1 shrink-0"
+              title="Pinpoint directly in 3D scene"
+            >
+              <span>🎯 Focus Pinpoint</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 2c. SCREEN-PROJECTED PINPOINT 3D LOCATOR TARGET */}
+      {injectedPinpoint && (
+        <div
+          style={{
+            left: `${injectedPinpoint.x}px`,
+            top: `${injectedPinpoint.y}px`,
+          }}
+          className="absolute -translate-x-1/2 -translate-y-full pointer-events-auto z-20 select-none cursor-pointer group"
+          onClick={() => {
+            onSelectEntity(injectedPinpoint.entityId);
+            handleSelectLayer(injectedPinpoint.layerId);
+          }}
+        >
+          <div className="flex flex-col items-center">
+            {/* Pulsing Tag Pill */}
+            <div className="flex items-center space-x-1 px-2 py-1 rounded-lg bg-red-900/90 border border-red-400 text-white font-mono text-[9.5px] font-bold shadow-[0_0_15px_rgba(239,68,68,0.8)] backdrop-blur-md transform transition-transform group-hover:scale-110 animate-bounce">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
+              <span>⚠️ PINPOINT: {injectedPinpoint.entityId}</span>
+            </div>
+            {/* Pointer arrowhead */}
+            <div className="w-0 h-0 border-x-4 border-x-transparent border-t-[6px] border-t-red-500" />
+            {/* Concentric radar rings */}
+            <div className="w-3 h-3 rounded-full bg-red-500/80 border border-red-300 animate-ping mt-0.5" />
+          </div>
+        </div>
+      )}
+
+      {/* 2d. SPATIAL OVERLAY TRACKING TAGS */}
+      {overlayTags.map((tag) => (
+        <div
+          key={tag.id}
+          style={{ left: `${tag.x}px`, top: `${tag.y}px` }}
+          className="absolute -translate-x-1/2 -translate-y-full pointer-events-auto z-10 select-none transition-all duration-75"
+        >
+          <div
+            onClick={() => onSelectEntity(tag.id)}
+            className={`flex items-center space-x-1 px-1.5 py-0.5 rounded text-[8.5px] font-mono font-bold cursor-pointer backdrop-blur-md shadow-md border transition-transform hover:scale-105 ${
+              tag.isIncident
+                ? "bg-red-950/80 text-red-300 border-red-500/60 animate-pulse"
+                : "bg-[#0E0F14]/80 text-[#F5D061] border-[#D4AF37]/40 hover:border-[#D4AF37]"
+            }`}
+          >
+            <span className={`w-1 h-1 rounded-full ${tag.isIncident ? "bg-red-400" : "bg-emerald-400"}`} />
+            <span>{tag.id}</span>
+          </div>
+        </div>
+      ))}
 
       {/* 3. COMPACT CLASSROOM / ENTITY INFO WINDOW (REDUCED MINIMAL FLOATING CARD) */}
       {selectedVectorInfo && (

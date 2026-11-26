@@ -240,86 +240,6 @@ export default function DigitalTwinExplorerPage() {
     );
   }
 
-  // 2. Student Role Access Gate (Restricted from Administrative Dashboards)
-  if (isAuthLoaded && authSession?.user.role === "STUDENT") {
-    return (
-      <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#070B14] text-[#E2E1E6] font-mono select-none">
-        <TopNav
-          currentFloor={currentFloor}
-          onSelectFloor={setCurrentFloor}
-          simulationActive={simulationActive}
-          onToggleSimulation={() => setIsSimModalOpen(true)}
-          allEntities={entities}
-          onSelectEntity={(entId) => {
-            setSelectedEntityId(entId);
-            setActiveWorkspace("TWIN");
-          }}
-          activeWorkspace={activeWorkspace}
-          onSelectWorkspace={setActiveWorkspace}
-          onOpenReportModal={() => setIsReportModalOpen(true)}
-          onOpenProfile={() => setIsLoginModalOpen(true)}
-          currentPersona={currentPersona}
-          onReplayIntro={() => setShowIntro(true)}
-        />
-        <main className="flex-1 flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_#0D192E_0%,_#070B14_60%,_#05080F_100%)]">
-          <div className="w-full max-w-lg p-8 rounded-2xl bg-[#0F172A]/90 border border-amber-500/30 shadow-2xl backdrop-blur-xl text-center space-y-6">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/10">
-              <ShieldAlert className="w-8 h-8 text-amber-400" />
-            </div>
-
-            <div>
-              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] text-amber-300 font-bold uppercase mb-2">
-                <span>RBAC Clearance Restriction</span>
-              </div>
-              <h2 className="text-xl font-bold text-white tracking-wide">
-                STUDENT PROFILE RESTRICTION
-              </h2>
-              <p className="text-xs text-[#94A3B8] mt-2 leading-relaxed">
-                Logged in as <strong>{authSession.user.full_name}</strong> (<code>{authSession.user.username}</code>). Student accounts are restricted from accessing institutional supervisory dashboards, digital twin grid actuators, and incident mitigation dispatchers.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-[#070B14] border border-[#1E293B] text-left text-xs space-y-2">
-              <div className="text-[10px] text-[#F5D061] font-bold uppercase">Authorized Student Capabilities:</div>
-              <ul className="list-disc list-inside space-y-1 text-[#CBD5E1] text-[11px]">
-                <li>Access the Student Grievance Mobile PWA</li>
-                <li>Submit campus classroom & facility hazard reports</li>
-                <li>Track live resolution status of personal grievances</li>
-              </ul>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <a
-                href="http://localhost:8090"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20 cursor-pointer"
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>Launch Student Grievance PWA (Port 8090)</span>
-              </a>
-
-              <button
-                onClick={() => AuthService.demoLogin("SUPER_ADMIN")}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#1E293B] hover:bg-[#334155] text-amber-300 border border-amber-500/30 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <KeyRound className="w-3.5 h-3.5" />
-                <span>Switch to Super Admin (1-Click Evaluation)</span>
-              </button>
-
-              <button
-                onClick={() => AuthService.logout()}
-                className="w-full py-2 text-xs text-[#94A3B8] hover:text-white underline cursor-pointer"
-              >
-                Sign Out / Return to Landing
-              </button>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#0E0F12] text-[#E2E1E6] font-sans select-none">
       {/* 1. TOP NAVIGATION WITH THREE-DASHBOARD WORKSPACE TABS */}
@@ -358,6 +278,7 @@ export default function DigitalTwinExplorerPage() {
         onOpenReportModal={() => setIsReportModalOpen(true)}
         onOpenProfile={() => setIsLoginModalOpen(true)}
         currentPersona={currentPersona}
+        onSelectPersona={setCurrentPersona}
         onReplayIntro={() => setShowIntro(true)}
       />
 
@@ -365,6 +286,7 @@ export default function DigitalTwinExplorerPage() {
       <div className="flex flex-1 w-full overflow-hidden relative min-h-0 min-w-0">
         {activeWorkspace === "COMMAND" ? (
           <CommandWorkspace
+            currentPersona={currentPersona}
             onNavigateToTwin={(entityId) => {
               if (entityId) setSelectedEntityId(entityId);
               setActiveWorkspace("TWIN");
@@ -385,33 +307,22 @@ export default function DigitalTwinExplorerPage() {
             }}
           />
         ) : (
-          /* DIGITAL TWIN 3D UNIFIED WORKSPACE (100% FULL SCREEN VIEWPORT) */
-          <div className="flex flex-1 w-full h-full overflow-hidden relative min-h-0 min-w-0">
-            {/* Left Vertical Tool Rail */}
-            <ToolRail
-              currentFloor={currentFloor}
-              onSelectFloor={setCurrentFloor}
-              activeLayers={activeLayers}
-              onToggleLayer={handleToggleLayer}
-            />
+          /* DIGITAL TWIN 3D UNIFIED WORKSPACE (100% FULL SCREEN VIEWPORT - NO SQUEEZING SIDEBARS) */
+          <main className="w-full h-full overflow-hidden relative min-h-0 min-w-0">
+            <div className="w-full h-full relative overflow-hidden min-h-0 min-w-0">
+              <CampusCanvas3D
+                selectedEntityId={selectedEntityId}
+                onSelectEntity={setSelectedEntityId}
+                incidentAffectedIds={incidentAffectedIds}
+                simulationActive={simulationActive}
+                currentFloor={currentFloor}
+                onSelectFloor={setCurrentFloor}
+              />
+            </div>
 
-            {/* Center High-Performance Full-Screen 3D WebGL Canvas */}
-            <main className="flex-1 w-full h-full overflow-hidden relative min-h-0 min-w-0">
-              <div className="w-full h-full relative overflow-hidden min-h-0 min-w-0">
-                <CampusCanvas3D
-                  selectedEntityId={selectedEntityId}
-                  onSelectEntity={setSelectedEntityId}
-                  incidentAffectedIds={incidentAffectedIds}
-                  simulationActive={simulationActive}
-                  currentFloor={currentFloor}
-                  onSelectFloor={setCurrentFloor}
-                />
-              </div>
-
-              {/* Compact Bottom-Right Live SSE Telemetry Waveform Widget (1/16 proportion) */}
-              <LiveTelemetryPill />
-            </main>
-          </div>
+            {/* Compact Bottom-Right Live SSE Telemetry Waveform Widget (1/16 proportion) */}
+            <LiveTelemetryPill />
+          </main>
         )}
       </div>
 

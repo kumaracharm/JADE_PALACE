@@ -133,6 +133,9 @@ if (typeof window !== "undefined" && "BroadcastChannel" in window) {
   }
 }
 
+// In-memory synchronous listeners for 0ms same-window updates
+const localListeners = new Set<(session: AuthSession | null) => void>();
+
 export class AuthService {
   /**
    * Retrieves active session from localStorage or cross-port cookie.
@@ -177,6 +180,7 @@ export class AuthService {
 
   /**
    * Saves authenticated session in both LocalStorage and cross-port cookies.
+   * Immediately dispatches to local listeners for sub-millisecond UI reactions.
    */
   static saveSession(session: AuthSession): void {
     if (typeof window === "undefined") return;
@@ -189,6 +193,16 @@ export class AuthService {
       document.cookie = `${COOKIE_KEY}=${encodeURIComponent(session.token)}; path=/; max-age=${maxAge}; SameSite=Lax`;
       document.cookie = `omnis_auth_user=${encodeURIComponent(JSON.stringify(session.user))}; path=/; max-age=${maxAge}; SameSite=Lax`;
 
+      // 1. Synchronously trigger same-window subscribers (0ms latency)
+      localListeners.forEach((cb) => {
+        try {
+          cb(session);
+        } catch (err) {
+          console.warn("Local auth listener error:", err);
+        }
+      });
+
+      // 2. Broadcast to other tabs/windows
       if (authBroadcast) {
         authBroadcast.postMessage({ type: "AUTH_LOGIN", session });
       }
@@ -233,44 +247,12 @@ export class AuthService {
   }
 
   /**
-   * Instant demo role login without manual password typing.
-   * Obtains a signed cryptographic JWT token from the FastAPI backend.
+   * Instantaneous demo role login without network delay (< 1 millisecond).
+   * Immediately saves session and updates all UI listeners, then syncs with FastAPI in background.
    */
-  static async demoLogin(role: DemoRole): Promise<AuthSession> {
-    try {
-      const res = await fetch(`${API_BASE}/auth/demo-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const demoMeta = DEMO_ACCOUNTS.find((d) => d.role === role) || DEMO_ACCOUNTS[0];
-
-        const session: AuthSession = {
-          token: data.access_token,
-          user: {
-            user_id: data.user_id,
-            username: data.username,
-            full_name: data.full_name || demoMeta.fullName,
-            role: data.role as DemoRole,
-            department: data.department || demoMeta.department,
-            permissions: data.permissions || demoMeta.capabilities,
-          },
-          expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
-        };
-
-        this.saveSession(session);
-        return session;
-      }
-    } catch (e) {
-      console.warn("Backend demo login fallback:", e);
-    }
-
-    // Offline client fallback
+  static demoLogin(role: DemoRole): AuthSession {
     const demoMeta = DEMO_ACCOUNTS.find((d) => d.role === role) || DEMO_ACCOUNTS[0];
-    const session: AuthSession = {
+    const instantSession: AuthSession = {
       token: `demo_jwt_${role}_${Date.now()}`,
       user: {
         user_id: demoMeta.username.toUpperCase(),
@@ -282,12 +264,45 @@ export class AuthService {
       },
       expiresAt: Date.now() + 3600 * 1000,
     };
-    this.saveSession(session);
-    return session;
+
+    // Synchronously apply session immediately
+    this.saveSession(instantSession);
+
+    // Non-blocking background sync with backend /auth/demo-login
+    if (typeof window !== "undefined") {
+      fetch(`${API_BASE}/auth/demo-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      })
+        .then(async (res) => {
+          if (res.ok) {
+            const data = await res.json();
+            const refreshedSession: AuthSession = {
+              token: data.access_token,
+              user: {
+                user_id: data.user_id,
+                username: data.username,
+                full_name: data.full_name || demoMeta.fullName,
+                role: data.role as DemoRole,
+                department: data.department || demoMeta.department,
+                permissions: data.permissions || demoMeta.capabilities,
+              },
+              expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
+            };
+            this.saveSession(refreshedSession);
+          }
+        })
+        .catch(() => {
+          // Graceful offline fallback already applied
+        });
+    }
+
+    return instantSession;
   }
 
   /**
-   * Clears session across LocalStorage, cookies, and broadcasts logout.
+   * Clears session across LocalStorage, cookies, and broadcasts logout synchronously.
    */
   static logout(): void {
     if (typeof window === "undefined") return;
@@ -297,6 +312,16 @@ export class AuthService {
       document.cookie = `${COOKIE_KEY}=; path=/; max-age=0; SameSite=Lax`;
       document.cookie = `omnis_auth_user=; path=/; max-age=0; SameSite=Lax`;
 
+      // 1. Synchronously trigger same-window subscribers
+      localListeners.forEach((cb) => {
+        try {
+          cb(null);
+        } catch (err) {
+          console.warn("Local auth listener error:", err);
+        }
+      });
+
+      // 2. Broadcast to other tabs/windows
       if (authBroadcast) {
         authBroadcast.postMessage({ type: "AUTH_LOGOUT" });
       }
@@ -306,10 +331,13 @@ export class AuthService {
   }
 
   /**
-   * Registers a callback for real-time auth changes across tabs/windows.
+   * Registers a callback for real-time auth changes across tabs/windows and in-memory listeners.
    */
   static onAuthChange(callback: (session: AuthSession | null) => void): () => void {
     if (typeof window === "undefined") return () => {};
+
+    // Register local synchronous listener
+    localListeners.add(callback);
 
     const handleMessage = (evt: MessageEvent) => {
       if (evt.data?.type === "AUTH_LOGIN") {
@@ -331,6 +359,7 @@ export class AuthService {
     window.addEventListener("storage", handleStorage);
 
     return () => {
+      localListeners.delete(callback);
       if (authBroadcast) {
         authBroadcast.removeEventListener("message", handleMessage);
       }
