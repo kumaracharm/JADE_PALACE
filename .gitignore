@@ -36,6 +36,7 @@ ENV/
 htmlcov/
 
 # Local Chrome & CDP profiles / temp artifacts
+cdp_*/
 cdp_profile*/
 chrome_temp*/
 temp_*/

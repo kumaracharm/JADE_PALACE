@@ -14,6 +14,6 @@ export const ENGINE_CONFIG = {
   engineBaseUrl: 'http://127.0.0.1:8000', // Change to http://<NEW_ENGINE_IP>:8000 for direct mode
   incidentsPath: '/api/v1/incidents',
   healthPath: '/health',
-  defaultUserId: 'USR-PRINCIPAL',
+  defaultUserId: 'USR-STUDENT',
   authHeader: '',
 };

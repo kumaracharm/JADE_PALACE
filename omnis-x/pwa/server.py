@@ -492,7 +492,7 @@ class GrievanceHandler(BaseHTTPRequestHandler):
                         record=record,
                         target_url=target_url,
                         mode=mode,
-                        omnisx_user_id=cfg.get("omnisx_user_id", "USR-PRINCIPAL"),
+                        omnisx_user_id=cfg.get("omnisx_user_id", "USR-STUDENT"),
                         auth_header=cfg.get("webhook_auth_header", ""),
                     )
 

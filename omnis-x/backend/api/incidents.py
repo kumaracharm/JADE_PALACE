@@ -178,19 +178,58 @@ def approve_recommendation(
     request: Request,
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(
-        require_roles([RoleEnum.PRINCIPAL, RoleEnum.HOD, RoleEnum.FACILITY_MANAGER, RoleEnum.IT_ADMIN])
+        require_roles([RoleEnum.SUPER_ADMIN, RoleEnum.PRINCIPAL, RoleEnum.HOD_ACADEMIC, RoleEnum.HOD, RoleEnum.FACILITY_MANAGER])
     ),
 ):
     """
     Human-in-the-Loop Approval Gateway.
     Authorizes recovery action plan and dispatches technical work order.
+    Enforces role domain boundaries.
     """
+    incident = db.query(IncidentModel).filter_by(incident_id=incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found.")
+
+    user_role_str = (
+        current_user.role.value
+        if hasattr(current_user.role, "value")
+        else str(current_user.role).replace("RoleEnum.", "")
+    ).upper()
+
+    # Technicians and Students can never approve
+    if user_role_str in ["TECHNICIAN", "STAFF"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Technicians are not authorized to approve recovery action plans.",
+        )
+    if user_role_str == "STUDENT":
+        raise HTTPException(
+            status_code=403,
+            detail="Students cannot approve administrative recovery plans.",
+        )
+
+    # HOD can only approve academic disruptions, not infrastructure/utility failures
+    if user_role_str in ["HOD_ACADEMIC", "HOD", "FACULTY"]:
+        meta = incident.metadata_json or {}
+        inc_cat = (
+            meta.get("category")
+            or (incident.root_entity.entity_type if incident.root_entity else "")
+            or incident.title
+            or incident.incident_id
+            or ""
+        ).upper()
+        if any(term in inc_cat for term in ["ELECTRICAL", "WATER", "HVAC", "FEEDER", "BREAKER", "TRANSFORMER", "BOOSTER", "FACILITIES"]) and not any(term in inc_cat for term in ["ACAD", "CLASS", "TIMETABLE", "PROJECTOR"]):
+            raise HTTPException(
+                status_code=403,
+                detail="Academic Admin role cannot approve physical plant and facilities recovery plans. Facility Manager authorization required.",
+            )
+
     incident = incident_service.approve_recommendation(
         db=db,
         incident_id=incident_id,
         plan_id=approval_in.plan_id,
         user_id=current_user.user_id,
-        user_role=RoleEnum(current_user.role),
+        user_role=RoleEnum(user_role_str),
         comments=approval_in.comments,
     )
 
@@ -222,7 +261,7 @@ def reject_recommendation(
         db=db,
         incident_id=incident_id,
         user_id=current_user.user_id,
-        user_role=RoleEnum(current_user.role),
+        user_role=RoleEnum(user_role_str),
         comments=approval_in.comments,
     )
 

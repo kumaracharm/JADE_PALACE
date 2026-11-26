@@ -48,14 +48,14 @@ export function OperationalFlowGraph({
     ? `${telemetry.active_power_kw.toFixed(1)} kW`
     : "142.5 kW";
 
-  // Real registered institutional topology
+  // Real registered institutional topology - balanced horizontal spacing across 1000px viewBox
   const nodes: FlowNode[] = [
     {
       id: "GEN-500KVA",
       name: "Diesel Standby Gen",
       type: "GENERATOR",
-      x: 70,
-      y: 70,
+      x: 35,
+      y: 65,
       status: "NORMAL",
       metric: "Output Voltage",
       value: "415 V",
@@ -64,8 +64,8 @@ export function OperationalFlowGraph({
       id: "SUBSTATION-01",
       name: "11kV Substation",
       type: "SUBSTATION",
-      x: 70,
-      y: 200,
+      x: 35,
+      y: 195,
       status: "NORMAL",
       metric: "Main Bus Voltage",
       value: liveVoltage,
@@ -74,8 +74,8 @@ export function OperationalFlowGraph({
       id: "ATS-01",
       name: "Auto Transfer Switch",
       type: "PANEL",
-      x: 240,
-      y: 135,
+      x: 215,
+      y: 130,
       status: "NORMAL",
       metric: "Switch Position",
       value: "MAINS PRI",
@@ -84,8 +84,8 @@ export function OperationalFlowGraph({
       id: "PANEL-ENG-MAIN",
       name: "Main Dist. Panel",
       type: "PANEL",
-      x: 420,
-      y: 135,
+      x: 395,
+      y: 130,
       status: "NORMAL",
       metric: "Current Draw",
       value: isCut ? "120 A (REDUCED)" : "320 A",
@@ -94,8 +94,8 @@ export function OperationalFlowGraph({
       id: "FEEDER-LABS-F1",
       name: "Feeder Riser 1",
       type: "FEEDER",
-      x: 600,
-      y: 90,
+      x: 575,
+      y: 85,
       status: isCut ? "CRITICAL" : "NORMAL",
       metric: "Line Status",
       value: livePower,
@@ -104,8 +104,8 @@ export function OperationalFlowGraph({
       id: "SRV-01",
       name: "Data Center MDF",
       type: "NETWORK",
-      x: 600,
-      y: 210,
+      x: 575,
+      y: 195,
       status: "NORMAL",
       metric: "Uplink Latency",
       value: "1.2 ms",
@@ -114,8 +114,8 @@ export function OperationalFlowGraph({
       id: "CR-101",
       name: "Classroom 101",
       type: "ROOM",
-      x: 790,
-      y: 60,
+      x: 770,
+      y: 50,
       status: isCut ? "CRITICAL" : "NORMAL",
       metric: "Class State",
       value: isCut ? "DISRUPTED (EE-302)" : "42 students",
@@ -124,8 +124,8 @@ export function OperationalFlowGraph({
       id: "LAB-01-EE",
       name: "Electronics Lab 101",
       type: "ROOM",
-      x: 790,
-      y: 140,
+      x: 770,
+      y: 130,
       status: isCut ? "CRITICAL" : "NORMAL",
       metric: "Testbed Power",
       value: isCut ? "POWER CUT (0 kW)" : "38 kW",
@@ -134,8 +134,8 @@ export function OperationalFlowGraph({
       id: "CR-201",
       name: "Classroom 201 (Alt)",
       type: "ROOM",
-      x: 790,
-      y: 220,
+      x: 770,
+      y: 210,
       status: isRecovery ? "NORMAL" : "NORMAL",
       metric: isRecovery ? "Relocation Target" : "Available Roster",
       value: isRecovery ? "REALLOCATED (EE-302)" : "VACANT / FREE",
@@ -183,9 +183,9 @@ export function OperationalFlowGraph({
         </div>
       </div>
 
-      {/* SVG Canvas for Flow Graph */}
-      <div className="relative w-full h-72 overflow-x-auto">
-        <svg className="w-[900px] h-full" xmlns="http://www.w3.org/2000/svg">
+      {/* SVG Canvas for Flow Graph - Responsive Full Width */}
+      <div className="relative w-full overflow-hidden">
+        <svg viewBox="0 0 1000 280" className="w-full h-auto min-h-[270px]" xmlns="http://www.w3.org/2000/svg">
           {/* Edge Connection Lines */}
           {edges.map((e, idx) => {
             const fromNode = getNode(e.from);
@@ -206,10 +206,10 @@ export function OperationalFlowGraph({
             return (
               <g key={idx}>
                 <line
-                  x1={fromNode.x + 50}
-                  y1={fromNode.y + 20}
+                  x1={fromNode.x + 155}
+                  y1={fromNode.y + 22}
                   x2={toNode.x}
-                  y2={toNode.y + 20}
+                  y2={toNode.y + 22}
                   stroke={strokeColor}
                   strokeWidth={isSevered ? 1.5 : 2}
                   strokeDasharray={isSevered ? "4 4" : undefined}
@@ -222,7 +222,7 @@ export function OperationalFlowGraph({
                     className="animate-pulse"
                   >
                     <animateMotion
-                      path={`M ${fromNode.x + 50} ${fromNode.y + 20} L ${toNode.x} ${toNode.y + 20}`}
+                      path={`M ${fromNode.x + 155} ${fromNode.y + 22} L ${toNode.x} ${toNode.y + 22}`}
                       dur="2.5s"
                       repeatCount="indefinite"
                     />
@@ -261,7 +261,7 @@ export function OperationalFlowGraph({
               >
                 {/* Node Box */}
                 <rect
-                  width="130"
+                  width="155"
                   height="44"
                   rx="6"
                   fill={statusBg}
@@ -270,8 +270,8 @@ export function OperationalFlowGraph({
                 />
                 {/* Node Header */}
                 <text
-                  x="8"
-                  y="16"
+                  x="10"
+                  y="17"
                   fill="#F8FAFC"
                   fontSize="10"
                   fontWeight="bold"
@@ -280,8 +280,8 @@ export function OperationalFlowGraph({
                 </text>
                 {/* Node Metric */}
                 <text
-                  x="8"
-                  y="32"
+                  x="10"
+                  y="33"
                   fill="#94A3B8"
                   fontSize="9"
                 >

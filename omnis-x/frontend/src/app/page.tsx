@@ -4,8 +4,7 @@ import React, { useState, useEffect } from "react";
 import { TopNav } from "@/components/navigation/TopNav";
 import { ToolRail } from "@/components/navigation/ToolRail";
 import { CampusCanvas3D } from "@/components/canvas3d/CampusCanvas3D";
-import { EntityInspector } from "@/components/inspector/EntityInspector";
-import { TelemetryTimeline } from "@/components/timeline/TelemetryTimeline";
+import { LiveTelemetryPill } from "@/components/twin/LiveTelemetryPill";
 import { SimulationPanel } from "@/components/simulation/SimulationPanel";
 import { CinematicIntro } from "@/components/cinematic/CinematicIntro";
 import { PaperPlaneLaunch } from "@/components/landing/PaperPlaneLaunch";
@@ -22,10 +21,13 @@ import {
 } from "@/types/digital-twin";
 import { CAMPUS_FLOORS } from "@/data/spatial-campus";
 import { DigitalTwinApi } from "@/services/api";
+import { InstitutionalCommandHero } from "@/components/landing/InstitutionalCommandHero";
+import { AuthService, AuthSession } from "@/services/auth";
+import { ShieldAlert, Smartphone, ArrowRight, UserCheck, KeyRound } from "lucide-react";
 
 export default function DigitalTwinExplorerPage() {
-  // Cinematic Intro Screen State (off by default for immediate workspace access, replayable via TopNav)
-  const [showIntro, setShowIntro] = useState<boolean>(false);
+  // Cinematic Intro Screen State (plays on page load/refresh, then transitions smoothly)
+  const [showIntro, setShowIntro] = useState<boolean>(true);
 
   // Kung Fu Panda Themed RBAC & Persona Profile
   const [currentPersona, setCurrentPersona] = useState<PersonaProfile>(KUNG_FU_PANDA_PERSONAS[0]);
@@ -41,12 +43,22 @@ export default function DigitalTwinExplorerPage() {
       if (port === "3001") setActiveWorkspace("TWIN");
       else if (port === "3002") setActiveWorkspace("RESPONSE");
       else if (port === "3000") setActiveWorkspace("COMMAND");
-
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("intro") === "1" || params.get("intro") === "true") {
-        setShowIntro(true);
-      }
     }
+  }, []);
+
+  // Institutional Authentication & RBAC Session State
+  const [authSession, setAuthSession] = useState<AuthSession | null>(null);
+  const [isAuthLoaded, setIsAuthLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    const current = AuthService.getSession();
+    setAuthSession(current);
+    setIsAuthLoaded(true);
+
+    const unsub = AuthService.onAuthChange((newSession) => {
+      setAuthSession(newSession);
+    });
+    return () => unsub();
   }, []);
 
   // Navigation & Floor State
@@ -66,7 +78,7 @@ export default function DigitalTwinExplorerPage() {
   const [entities, setEntities] = useState<CampusEntity[]>([]);
   const [entityMap, setEntityMap] = useState<Map<string, CampusEntity>>(new Map());
   const [relationships, setRelationships] = useState<EntityRelationship[]>([]);
-  const [selectedEntityId, setSelectedEntityId] = useState<string | null>("LAB-01-EE");
+  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
 
   // Active Incident Focus for Response Workspace
   const [targetIncidentId, setTargetIncidentId] = useState<string | null>(null);
@@ -198,6 +210,116 @@ export default function DigitalTwinExplorerPage() {
     );
   }
 
+  // 1. Institutional Hero & Authentication Entry Screen for Command Centre
+  if (isAuthLoaded && activeWorkspace === "COMMAND" && !authSession) {
+    return (
+      <InstitutionalCommandHero
+        onEnterCommandCentre={(s) => setAuthSession(s)}
+        onExploreWorkspace={(ws) => {
+          if (ws === "COMMAND") {
+            if (typeof window !== "undefined" && window.location.port !== "3000") {
+              window.location.href = "http://localhost:3000";
+            } else {
+              setActiveWorkspace("COMMAND");
+            }
+          } else if (ws === "TWIN") {
+            if (typeof window !== "undefined" && window.location.port !== "3001") {
+              window.location.href = "http://localhost:3001";
+            } else {
+              setActiveWorkspace("TWIN");
+            }
+          } else if (ws === "RESPONSE") {
+            if (typeof window !== "undefined" && window.location.port !== "3002") {
+              window.location.href = "http://localhost:3002";
+            } else {
+              setActiveWorkspace("RESPONSE");
+            }
+          }
+        }}
+      />
+    );
+  }
+
+  // 2. Student Role Access Gate (Restricted from Administrative Dashboards)
+  if (isAuthLoaded && authSession?.user.role === "STUDENT") {
+    return (
+      <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#070B14] text-[#E2E1E6] font-mono select-none">
+        <TopNav
+          currentFloor={currentFloor}
+          onSelectFloor={setCurrentFloor}
+          simulationActive={simulationActive}
+          onToggleSimulation={() => setIsSimModalOpen(true)}
+          allEntities={entities}
+          onSelectEntity={(entId) => {
+            setSelectedEntityId(entId);
+            setActiveWorkspace("TWIN");
+          }}
+          activeWorkspace={activeWorkspace}
+          onSelectWorkspace={setActiveWorkspace}
+          onOpenReportModal={() => setIsReportModalOpen(true)}
+          onOpenProfile={() => setIsLoginModalOpen(true)}
+          currentPersona={currentPersona}
+          onReplayIntro={() => setShowIntro(true)}
+        />
+        <main className="flex-1 flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_#0D192E_0%,_#070B14_60%,_#05080F_100%)]">
+          <div className="w-full max-w-lg p-8 rounded-2xl bg-[#0F172A]/90 border border-amber-500/30 shadow-2xl backdrop-blur-xl text-center space-y-6">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/10">
+              <ShieldAlert className="w-8 h-8 text-amber-400" />
+            </div>
+
+            <div>
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] text-amber-300 font-bold uppercase mb-2">
+                <span>RBAC Clearance Restriction</span>
+              </div>
+              <h2 className="text-xl font-bold text-white tracking-wide">
+                STUDENT PROFILE RESTRICTION
+              </h2>
+              <p className="text-xs text-[#94A3B8] mt-2 leading-relaxed">
+                Logged in as <strong>{authSession.user.full_name}</strong> (<code>{authSession.user.username}</code>). Student accounts are restricted from accessing institutional supervisory dashboards, digital twin grid actuators, and incident mitigation dispatchers.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#070B14] border border-[#1E293B] text-left text-xs space-y-2">
+              <div className="text-[10px] text-[#F5D061] font-bold uppercase">Authorized Student Capabilities:</div>
+              <ul className="list-disc list-inside space-y-1 text-[#CBD5E1] text-[11px]">
+                <li>Access the Student Grievance Mobile PWA</li>
+                <li>Submit campus classroom & facility hazard reports</li>
+                <li>Track live resolution status of personal grievances</li>
+              </ul>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <a
+                href="http://localhost:8090"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20 cursor-pointer"
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>Launch Student Grievance PWA (Port 8090)</span>
+              </a>
+
+              <button
+                onClick={() => AuthService.demoLogin("SUPER_ADMIN")}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#1E293B] hover:bg-[#334155] text-amber-300 border border-amber-500/30 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>Switch to Super Admin (1-Click Evaluation)</span>
+              </button>
+
+              <button
+                onClick={() => AuthService.logout()}
+                className="w-full py-2 text-xs text-[#94A3B8] hover:text-white underline cursor-pointer"
+              >
+                Sign Out / Return to Landing
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#0E0F12] text-[#E2E1E6] font-sans select-none">
       {/* 1. TOP NAVIGATION WITH THREE-DASHBOARD WORKSPACE TABS */}
@@ -263,7 +385,7 @@ export default function DigitalTwinExplorerPage() {
             }}
           />
         ) : (
-          /* DIGITAL TWIN 3D UNIFIED WORKSPACE (NO 2D COMPETING CANVAS) */
+          /* DIGITAL TWIN 3D UNIFIED WORKSPACE (100% FULL SCREEN VIEWPORT) */
           <div className="flex flex-1 w-full h-full overflow-hidden relative min-h-0 min-w-0">
             {/* Left Vertical Tool Rail */}
             <ToolRail
@@ -273,9 +395,9 @@ export default function DigitalTwinExplorerPage() {
               onToggleLayer={handleToggleLayer}
             />
 
-            {/* Center High-Performance 3D WebGL Canvas */}
-            <main className="flex-1 flex flex-col h-full overflow-hidden relative min-h-0 min-w-0">
-              <div className="flex-1 w-full h-full relative overflow-hidden min-h-0 min-w-0">
+            {/* Center High-Performance Full-Screen 3D WebGL Canvas */}
+            <main className="flex-1 w-full h-full overflow-hidden relative min-h-0 min-w-0">
+              <div className="w-full h-full relative overflow-hidden min-h-0 min-w-0">
                 <CampusCanvas3D
                   selectedEntityId={selectedEntityId}
                   onSelectEntity={setSelectedEntityId}
@@ -286,23 +408,9 @@ export default function DigitalTwinExplorerPage() {
                 />
               </div>
 
-              {/* Bottom Contextual Telemetry Timeline */}
-              <TelemetryTimeline selectedEntityId={selectedEntityId} />
+              {/* Compact Bottom-Right Live SSE Telemetry Waveform Widget (1/16 proportion) */}
+              <LiveTelemetryPill />
             </main>
-
-            {/* Right Autodesk Tandem-Style Entity Inspector */}
-            {selectedEntityId && (
-              <EntityInspector
-                entityId={selectedEntityId}
-                onClose={() => setSelectedEntityId(null)}
-                entityMap={entityMap}
-                onSelectEntity={setSelectedEntityId}
-                onInitiateWorkOrder={(entId) => {
-                  setTargetIncidentId("INC-DEMO-01");
-                  setActiveWorkspace("RESPONSE");
-                }}
-              />
-            )}
           </div>
         )}
       </div>

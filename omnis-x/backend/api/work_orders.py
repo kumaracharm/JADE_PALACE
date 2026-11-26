@@ -57,7 +57,7 @@ def update_work_order_status(
     request: Request,
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(
-        require_roles([RoleEnum.PRINCIPAL, RoleEnum.FACILITY_MANAGER, RoleEnum.IT_ADMIN, RoleEnum.STAFF])
+        require_roles([RoleEnum.SUPER_ADMIN, RoleEnum.PRINCIPAL, RoleEnum.FACILITY_MANAGER, RoleEnum.TECHNICIAN, RoleEnum.STAFF])
     ),
 ):
     """

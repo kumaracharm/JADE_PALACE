@@ -686,30 +686,39 @@ SEED_ROLES = [
 
 SEED_USERS = [
     {
-        "user_id": "USR-PRINCIPAL",
-        "username": "principal",
-        "email": "principal@apex.edu",
-        "password": "Password123!",
-        "full_name": "Dr. Arthur Vance",
-        "role": RoleEnum.PRINCIPAL.value,
+        "user_id": "USR-SUPER-ADMIN",
+        "username": "superadmin",
+        "email": "superadmin@apex.edu",
+        "password": "AdminPassword!123",
+        "full_name": "Dr. Arthur Vance (Director)",
+        "role": RoleEnum.SUPER_ADMIN.value,
         "department": "Executive Leadership",
     },
     {
         "user_id": "USR-FACILITY-MGR",
         "username": "facility_mgr",
         "email": "m.bennett@apex.edu",
-        "password": "Password123!",
-        "full_name": "Marcus Bennett",
+        "password": "FacilityPass!123",
+        "full_name": "Marcus Bennett (Chief Engineer)",
         "role": RoleEnum.FACILITY_MANAGER.value,
         "department": "Facilities & Physical Plant",
     },
     {
-        "user_id": "USR-ELEC-TECH",
-        "username": "elec_tech1",
+        "user_id": "USR-HOD-ACADEMIC",
+        "username": "hod_academic",
+        "email": "k.sharma@apex.edu",
+        "password": "AcademicPass!123",
+        "full_name": "Dr. Kavita Sharma (HOD EEE)",
+        "role": RoleEnum.HOD_ACADEMIC.value,
+        "department": "Electrical & Computer Engineering",
+    },
+    {
+        "user_id": "USR-TECHNICIAN",
+        "username": "technician",
         "email": "r.patel@apex.edu",
-        "password": "Password123!",
-        "full_name": "Rajesh Patel",
-        "role": RoleEnum.STAFF.value,
+        "password": "TechPass!123",
+        "full_name": "Rajesh Patel (Lead Electrical Tech)",
+        "role": RoleEnum.TECHNICIAN.value,
         "department": "Facilities & Physical Plant",
         "metadata": {
             "skills": ["High Voltage", "Circuit Breakers", "Switchgear", "Power Distribution", "Safety Interlocks"],
@@ -718,56 +727,11 @@ SEED_USERS = [
         },
     },
     {
-        "user_id": "USR-ELEC-TECH-2",
-        "username": "elec_tech2",
-        "email": "d.miller@apex.edu",
-        "password": "Password123!",
-        "full_name": "David Miller",
-        "role": RoleEnum.STAFF.value,
-        "department": "Facilities & Physical Plant",
-        "metadata": {
-            "skills": ["Internal Wiring", "Relays", "Lighting"],
-            "active_tasks": 3,
-            "shift": "DAY",
-        },
-    },
-    {
-        "user_id": "USR-IT-ADMIN",
-        "username": "it_admin",
-        "email": "s.lin@apex.edu",
-        "password": "Password123!",
-        "full_name": "Sarah Lin",
-        "role": RoleEnum.IT_ADMIN.value,
-        "department": "Campus IT Systems",
-        "metadata": {
-            "skills": ["Switching", "VLAN", "Fiber Optic", "Routing", "SNMP"],
-            "active_tasks": 1,
-        },
-    },
-    {
-        "user_id": "USR-FACULTY-SHARMA",
-        "username": "faculty_sharma",
-        "email": "k.sharma@apex.edu",
-        "password": "Password123!",
-        "full_name": "Dr. Kavita Sharma",
-        "role": RoleEnum.HOD.value,
-        "department": "Electrical & Electronics Engineering",
-    },
-    {
-        "user_id": "USR-FACULTY-CHEN",
-        "username": "faculty_chen",
-        "email": "a.chen@apex.edu",
-        "password": "Password123!",
-        "full_name": "Dr. Alan Chen",
-        "role": RoleEnum.FACULTY.value,
-        "department": "Computer Science & Robotics",
-    },
-    {
-        "user_id": "USR-STUDENT-01",
-        "username": "student_priya",
+        "user_id": "USR-STUDENT",
+        "username": "student",
         "email": "priya.v@student.apex.edu",
-        "password": "Password123!",
-        "full_name": "Priya Verma",
+        "password": "StudentPass!123",
+        "full_name": "Priya Verma (B.Tech Student)",
         "role": RoleEnum.STUDENT.value,
         "department": "Student Body",
     },
@@ -795,9 +759,13 @@ def seed_database(db: Session, reset_operational: bool = False) -> None:
             db.add(role_obj)
     db.commit()
 
-    # 2. Seed Users
+    # 2. Seed Users (idempotent insert or update to synchronize demo credentials)
     for u_data in SEED_USERS:
-        existing_user = db.query(UserModel).filter_by(user_id=u_data["user_id"]).first()
+        existing_user = db.query(UserModel).filter(
+            (UserModel.user_id == u_data["user_id"]) | 
+            (UserModel.username == u_data["username"]) | 
+            (UserModel.email == u_data["email"])
+        ).first()
         if not existing_user:
             user_obj = UserModel(
                 user_id=u_data["user_id"],
@@ -810,6 +778,15 @@ def seed_database(db: Session, reset_operational: bool = False) -> None:
                 is_active=True,
             )
             db.add(user_obj)
+        else:
+            existing_user.user_id = u_data["user_id"]
+            existing_user.username = u_data["username"]
+            existing_user.email = u_data["email"]
+            existing_user.hashed_password = hash_password(u_data["password"])
+            existing_user.role = u_data["role"]
+            existing_user.full_name = u_data["full_name"]
+            existing_user.department = u_data.get("department")
+            existing_user.is_active = True
     db.commit()
 
     # 3. Seed Entities (Idempotent insert or metadata update; preserves operational status if already set)

@@ -398,13 +398,49 @@ function initFormControls() {
     });
   });
 
+  const DEMO_STUDENT = {
+    name: 'Priya Verma',
+    id: 'ENG24CS042',
+    contact: 'priya.v@student.apex.edu',
+    username: 'student',
+    password: 'StudentPass!123',
+    role: 'STUDENT',
+  };
+
+  function applyStudentCredentials() {
+    $('student-name').value = DEMO_STUDENT.name;
+    $('student-id').value = DEMO_STUDENT.id;
+    $('student-contact').value = DEMO_STUDENT.contact;
+    $('anon-toggle').checked = false;
+    $('student-fields').style.display = 'block';
+    localStorage.setItem(
+      'omnisx_student_profile',
+      JSON.stringify({ name: DEMO_STUDENT.name, id: DEMO_STUDENT.id, contact: DEMO_STUDENT.contact })
+    );
+    const statusText = $('student-status-text');
+    if (statusText) statusText.textContent = `Authenticated: ${DEMO_STUDENT.name} (${DEMO_STUDENT.id})`;
+    showToast(`Loaded Student: ${DEMO_STUDENT.name} (${DEMO_STUDENT.username} / ${DEMO_STUDENT.password})`);
+  }
+
+  $('btn-fill-student-creds')?.addEventListener('click', applyStudentCredentials);
+  $('btn-quick-fill-top')?.addEventListener('click', applyStudentCredentials);
+
   try {
     const savedProfile = JSON.parse(localStorage.getItem('omnisx_student_profile') || '{}');
-    if (savedProfile.name) $('student-name').value = savedProfile.name;
-    if (savedProfile.id) $('student-id').value = savedProfile.id;
-    if (savedProfile.contact) $('student-contact').value = savedProfile.contact;
+    if (savedProfile.name) {
+      $('student-name').value = savedProfile.name;
+      $('student-id').value = savedProfile.id || DEMO_STUDENT.id;
+      $('student-contact').value = savedProfile.contact || DEMO_STUDENT.contact;
+    } else {
+      // Default to demo student credentials
+      $('student-name').value = DEMO_STUDENT.name;
+      $('student-id').value = DEMO_STUDENT.id;
+      $('student-contact').value = DEMO_STUDENT.contact;
+    }
   } catch {
-    // ignore
+    $('student-name').value = DEMO_STUDENT.name;
+    $('student-id').value = DEMO_STUDENT.id;
+    $('student-contact').value = DEMO_STUDENT.contact;
   }
 
   $('anon-toggle').addEventListener('change', (e) => {

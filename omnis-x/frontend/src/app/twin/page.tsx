@@ -7,8 +7,7 @@ import { FloorPlanCanvas } from "@/components/canvas/FloorPlanCanvas";
 import { CAMPUS_FLOORS } from "@/data/spatial-campus";
 import { TopNav } from "@/components/navigation/TopNav";
 import { ToolRail } from "@/components/navigation/ToolRail";
-import { EntityInspector } from "@/components/inspector/EntityInspector";
-import { TelemetryTimeline } from "@/components/timeline/TelemetryTimeline";
+import { LiveTelemetryPill } from "@/components/twin/LiveTelemetryPill";
 import { ReportIncidentModal } from "@/components/reporting/ReportIncidentModal";
 import { SimulationPanel } from "@/components/simulation/SimulationPanel";
 import { CinematicIntro } from "@/components/cinematic/CinematicIntro";
@@ -25,7 +24,7 @@ function TwinContent() {
   const [currentPersona, setCurrentPersona] = useState<PersonaProfile>(KUNG_FU_PANDA_PERSONAS[2]); // Master Tigress (Facility Manager)
   const [currentFloor, setCurrentFloor] = useState<string>("FLOOR-1");
   const [twinViewMode, setTwinViewMode] = useState<"CAMPUS_3D" | "FLOORPLAN">("CAMPUS_3D");
-  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(entityParam || "LAB-01-EE");
+  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(entityParam || null);
   const [activeLayers, setActiveLayers] = useState<Set<ActiveLayerId>>(
     new Set<ActiveLayerId>(["OPERATIONAL_STATUS", "ELECTRICAL_GRID", "NETWORK_TOPOLOGY"])
   );
@@ -37,7 +36,7 @@ function TwinContent() {
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [showCinematicReveal, setShowCinematicReveal] = useState(false);
+  const [showCinematicReveal, setShowCinematicReveal] = useState(true);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isSimOpen, setIsSimOpen] = useState(false);
 
@@ -109,8 +108,8 @@ function TwinContent() {
           onToggleLayer={handleToggleLayer}
         />
 
-        {/* Center: Authoritative Spatial Viewport (3D Interactive Model or 2D CAD Floor Plan) */}
-        <main className="flex-1 flex flex-col h-full overflow-hidden relative min-h-0 min-w-0">
+        {/* Center: Authoritative Spatial Viewport (Full Screen Three.js 3D Model or 2D CAD Floor Plan) */}
+        <main className="flex-1 flex flex-col w-full h-full overflow-hidden relative min-h-0 min-w-0">
           <div className="flex-1 w-full h-full relative overflow-hidden min-h-0 min-w-0">
             {twinViewMode === "CAMPUS_3D" ? (
               <CampusCanvas3D
@@ -134,26 +133,9 @@ function TwinContent() {
             )}
           </div>
 
-          {/* Contextual Telemetry Timeline */}
-          <TelemetryTimeline selectedEntityId={selectedEntityId} />
+          {/* Compact Bottom-Right Live SSE Telemetry Waveform Pill */}
+          <LiveTelemetryPill />
         </main>
-
-        {/* Right: Compact Collapsible Inspector */}
-        {selectedEntityId && (
-          <EntityInspector
-            entityId={selectedEntityId}
-            onClose={() => setSelectedEntityId(null)}
-            entityMap={entityMap}
-            onSelectEntity={setSelectedEntityId}
-            onInitiateWorkOrder={(entId) => {
-              if (typeof window !== "undefined" && window.location.port !== "3002") {
-                window.location.href = `http://localhost:3002/response?target=${encodeURIComponent(entId)}`;
-              } else {
-                router.push(`/response?target=${encodeURIComponent(entId)}`);
-              }
-            }}
-          />
-        )}
       </div>
 
       {/* Cinematic Digital Twin Campus Reveal Overlay */}

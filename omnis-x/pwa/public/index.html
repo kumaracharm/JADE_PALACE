@@ -31,9 +31,9 @@
           <div>
             <div class="brand-row">
               <span class="brand-title">OMNIS-X</span>
-              <span class="brand-tag">STUDENT PWA</span>
+              <span class="brand-tag">OOGWAY SENTINEL</span>
             </div>
-            <div class="brand-sub" id="portal-subtitle">Apex Institute of Technology</div>
+            <div class="brand-sub" id="portal-subtitle">Jade Palace Operations • Master Oogway's Student Grievance Portal</div>
           </div>
 
           <div class="breadcrumb">
@@ -44,6 +44,12 @@
         </div>
 
         <div class="topbar-actions">
+          <div class="student-session-pill" id="student-session-pill" title="Master Oogway Student Portal Identity">
+            <span class="dot" style="background:#52B788;"></span>
+            <span>Student: <strong id="topbar-student-name" style="color:#F5D061;">Priya Verma</strong> (<span id="topbar-student-id">ENG24CS042</span>)</span>
+            <button type="button" id="btn-quick-fill-top" class="btn btn-gold btn-xs" style="margin-left:6px;padding:2px 7px;font-size:10px;height:22px;">1-Click Fill</button>
+          </div>
+
           <div class="mode-switch" id="map-mode-switch" title="Switch Desktop Map View">
             <button type="button" data-map-mode="2d" class="active">Spatial 2D</button>
             <button type="button" data-map-mode="3d">3D Twin</button>
@@ -118,6 +124,14 @@
             </div>
 
             <div id="report-form-container">
+              <!-- Master Oogway Jade Palace Persona & Wisdom Banner -->
+              <div style="margin-bottom:10px;padding:8px 12px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:8px;font-size:11px;color:#F5D061;display:flex;align-items:center;gap:8px;">
+                <span style="font-size:16px;">🐢</span>
+                <div>
+                  <strong>Master Oogway's Wisdom:</strong> <em>"Yesterday is history, tomorrow is a mystery, but today is a gift. That is why it is called the present."</em>
+                </div>
+              </div>
+
               <!-- Step 1: Location via fast 2D floor plan (inline on phone, synced with desktop map) -->
               <div class="section-card">
                 <div class="section-label">
@@ -198,6 +212,29 @@
                     <input type="checkbox" id="anon-toggle" style="width:16px;height:16px;accent-color:#D4AF37;" />
                     Submit Anonymously
                   </label>
+                </div>
+
+                <!-- STUDENT CREDENTIALS & DEMO ACCESS -->
+                <div id="student-credentials-card" class="student-auth-box">
+                  <div class="student-auth-header">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span class="student-auth-badge">STUDENT DEMO CREDENTIALS</span>
+                      <span style="font-size:10px;color:#8A8594;">(Evaluator Access)</span>
+                    </div>
+                    <button type="button" id="btn-fill-student-creds" class="btn btn-gold btn-xs">⚡ 1-Click Auto-Fill</button>
+                  </div>
+                  <div class="student-auth-grid">
+                    <div><span class="auth-label">Role:</span> <code>STUDENT (USR-STUDENT)</code></div>
+                    <div><span class="auth-label">Username:</span> <code>student</code></div>
+                    <div><span class="auth-label">Password:</span> <code>StudentPass!123</code></div>
+                    <div><span class="auth-label">Roll ID:</span> <code>ENG24CS042</code></div>
+                    <div><span class="auth-label">Student:</span> <code>Priya Verma</code></div>
+                    <div style="grid-column: 1 / -1;"><span class="auth-label">College Email:</span> <code>priya.v@student.apex.edu</code></div>
+                  </div>
+                  <div id="student-auth-status" class="student-auth-status">
+                    <span class="auth-dot active"></span>
+                    <span id="student-status-text">Authenticated as Priya Verma (student • ENG24CS042)</span>
+                  </div>
                 </div>
 
                 <div id="student-fields">

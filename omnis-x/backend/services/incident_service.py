@@ -50,7 +50,7 @@ from backend.graph.repository import graph_repository
 VALID_TRANSITIONS: Dict[IncidentStatus, List[IncidentStatus]] = {
     IncidentStatus.REPORTED: [IncidentStatus.VALIDATING, IncidentStatus.REJECTED, IncidentStatus.DUPLICATE],
     IncidentStatus.VALIDATING: [IncidentStatus.CONFIRMED, IncidentStatus.REJECTED, IncidentStatus.DUPLICATE],
-    IncidentStatus.CONFIRMED: [IncidentStatus.ANALYZING, IncidentStatus.REJECTED],
+    IncidentStatus.CONFIRMED: [IncidentStatus.ANALYZING, IncidentStatus.AWAITING_APPROVAL, IncidentStatus.ASSIGNED, IncidentStatus.REJECTED],
     IncidentStatus.ANALYZING: [IncidentStatus.RECOMMENDATION_READY, IncidentStatus.AWAITING_APPROVAL, IncidentStatus.CONFIRMED],
     IncidentStatus.RECOMMENDATION_READY: [IncidentStatus.AWAITING_APPROVAL, IncidentStatus.ASSIGNED, IncidentStatus.REJECTED],
     IncidentStatus.AWAITING_APPROVAL: [IncidentStatus.ASSIGNED, IncidentStatus.IN_PROGRESS, IncidentStatus.REJECTED],
@@ -330,7 +330,7 @@ class IncidentService:
 
         matching_approval = None
         for a in approvals:
-            if a.required_role == user_role.value or user_role == RoleEnum.PRINCIPAL:
+            if a.required_role == user_role.value or user_role in [RoleEnum.PRINCIPAL, RoleEnum.SUPER_ADMIN]:
                 matching_approval = a
                 break
 
@@ -354,8 +354,9 @@ class IncidentService:
         ).count()
 
         if remaining == 0:
-            # Transition to ASSIGNED and create Work Order
-            self.transition_status(db, incident_id, IncidentStatus.ASSIGNED, user_id, f"Approved by {user_role.value}. Ready for dispatch.")
+            # Transition to ASSIGNED if not already in ASSIGNED or downstream state
+            if incident.status not in [IncidentStatus.ASSIGNED.value, IncidentStatus.IN_PROGRESS.value, IncidentStatus.RESOLVED.value, IncidentStatus.CLOSED.value]:
+                self.transition_status(db, incident_id, IncidentStatus.ASSIGNED, user_id, f"Approved by {user_role.value}. Ready for dispatch.")
 
             # Automatically generate Work Order from recommendation
             existing_wo = db.query(WorkOrderModel).filter_by(incident_id=incident_id).first()

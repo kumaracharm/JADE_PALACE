@@ -86,13 +86,19 @@ class CriticalityLevel(str, Enum):
 
 
 class RoleEnum(str, Enum):
-    PRINCIPAL = "PRINCIPAL"
-    HOD = "HOD"
+    # Core Demo RBAC Hierarchy
+    SUPER_ADMIN = "SUPER_ADMIN"
     FACILITY_MANAGER = "FACILITY_MANAGER"
-    IT_ADMIN = "IT_ADMIN"
-    FACULTY = "FACULTY"
-    STAFF = "STAFF"
+    HOD_ACADEMIC = "HOD_ACADEMIC"
+    TECHNICIAN = "TECHNICIAN"
     STUDENT = "STUDENT"
+
+    # Backward Compatibility Aliases
+    PRINCIPAL = "SUPER_ADMIN"
+    HOD = "HOD_ACADEMIC"
+    STAFF = "TECHNICIAN"
+    FACULTY = "HOD_ACADEMIC"
+    IT_ADMIN = "SUPER_ADMIN"
 
 
 class IncidentStatus(str, Enum):
@@ -114,6 +120,7 @@ class IncidentStatus(str, Enum):
 class ProvenanceSourceType(str, Enum):
     REAL = "REAL"
     SYNTHETIC = "SYNTHETIC"
+    SYNTHETIC_SIMULATED = "SYNTHETIC_SIMULATED"
     REPORTED = "REPORTED"
     STUDENT_REPORTED = "STUDENT_REPORTED"
     ESTIMATED = "ESTIMATED"

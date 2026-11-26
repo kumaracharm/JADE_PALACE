@@ -6,7 +6,7 @@
   "engine_base_url": "http://127.0.0.1:8000",
   "engine_incidents_path": "/api/v1/incidents",
   "engine_health_path": "/health",
-  "engine_user_id": "USR-PRINCIPAL",
+  "engine_user_id": "USR-STUDENT",
   "engine_auth_header": "",
   "auto_forward": true
 }

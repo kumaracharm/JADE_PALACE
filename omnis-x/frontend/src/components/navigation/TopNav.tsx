@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
   Building,
@@ -11,10 +11,18 @@ import {
   Compass,
   Film,
   Smartphone,
+  Shield,
+  ChevronDown,
+  LogOut,
+  CheckCircle2,
+  Key,
+  GraduationCap,
+  Wrench,
+  UserCheck,
 } from "lucide-react";
 import { CampusEntity } from "@/types/digital-twin";
-
 import { PersonaProfile, KUNG_FU_PANDA_PERSONAS } from "@/components/profile/KungFuPandaProfile";
+import { AuthService, AuthSession, DEMO_ACCOUNTS, DemoRole } from "@/services/auth";
 
 interface TopNavProps {
   currentFloor: string;
@@ -51,6 +59,96 @@ export function TopNav({
 }: TopNavProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [authSession, setAuthSession] = useState<AuthSession | null>(null);
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setAuthSession(AuthService.getSession());
+    const unsub = AuthService.onAuthChange((s) => setAuthSession(s));
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsRoleDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const getRoleStyle = (role?: DemoRole) => {
+    switch (role) {
+      case "SUPER_ADMIN":
+        return {
+          bg: "bg-[#D4AF37]/15",
+          text: "text-[#F5D061]",
+          border: "border-[#D4AF37]/40",
+          label: "SUPER ADMIN",
+          dot: "bg-amber-400",
+        };
+      case "FACILITY_MANAGER":
+        return {
+          bg: "bg-sky-500/15",
+          text: "text-sky-400",
+          border: "border-sky-500/40",
+          label: "FACILITY MGR",
+          dot: "bg-sky-400",
+        };
+      case "HOD_ACADEMIC":
+        return {
+          bg: "bg-purple-500/15",
+          text: "text-purple-300",
+          border: "border-purple-500/40",
+          label: "HOD ACADEMIC",
+          dot: "bg-purple-400",
+        };
+      case "TECHNICIAN":
+        return {
+          bg: "bg-orange-500/15",
+          text: "text-orange-400",
+          border: "border-orange-500/40",
+          label: "TECHNICIAN",
+          dot: "bg-orange-400",
+        };
+      case "STUDENT":
+        return {
+          bg: "bg-emerald-500/15",
+          text: "text-emerald-400",
+          border: "border-emerald-500/40",
+          label: "STUDENT",
+          dot: "bg-emerald-400",
+        };
+      default:
+        return {
+          bg: "bg-[#252833]",
+          text: "text-[#A69FB1]",
+          border: "border-[#3A3D4B]",
+          label: "DEMO GUEST",
+          dot: "bg-gray-400",
+        };
+    }
+  };
+
+  const currentRoleStyle = getRoleStyle(authSession?.user.role);
+
+  const handleQuickSwitchRole = async (role: DemoRole) => {
+    try {
+      const s = await AuthService.demoLogin(role);
+      setAuthSession(s);
+      setIsRoleDropdownOpen(false);
+    } catch (e) {
+      console.warn("Role switch error:", e);
+    }
+  };
+
+  const handleLogout = () => {
+    AuthService.logout();
+    setAuthSession(null);
+    setIsRoleDropdownOpen(false);
+  };
 
   // Filter entities by search query
   const searchResults = searchQuery.trim()
@@ -253,18 +351,6 @@ export function TopNav({
           <span className="hidden lg:inline">Student PWA</span>
         </a>
 
-        {/* Cinematic Intro Button */}
-        {onReplayIntro && (
-          <button
-            onClick={onReplayIntro}
-            className="flex items-center space-x-1.5 px-2 sm:px-2.5 py-1 text-xs font-mono rounded bg-[#191B22] border border-[#2D303B] hover:border-[#D4AF37] text-[#9D8EB5] hover:text-[#FFFFFF] transition-all flex-shrink-0"
-            title="Play Cinematic 3D Intro"
-          >
-            <Film className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span className="hidden xl:inline">Cinematic Intro</span>
-          </button>
-        )}
-
         {/* Counterfactual Simulation Mode Toggle */}
         <button
           onClick={onToggleSimulation}
@@ -285,34 +371,145 @@ export function TopNav({
           <span className="text-[10px] font-mono font-bold text-[#E6C45E]">LIVE</span>
         </div>
 
-        {/* Kung Fu Panda Themed Operator Profile & Role Switcher */}
-        <button
-          onClick={onOpenProfile}
-          className="flex items-center space-x-2 pl-2 border-l border-[#252833] flex-shrink-0 hover:opacity-90 transition-opacity cursor-pointer text-left"
-          title="Switch Institutional Persona / View RBAC Scope"
-        >
-          <div
-            className={`w-7 h-7 rounded-full bg-gradient-to-br ${currentPersona.avatarGradient} border border-[#D4AF37]/50 overflow-hidden flex items-center justify-center text-white text-[10px] font-bold shadow flex-shrink-0`}
+        {/* Institutional RBAC Operator Profile & 1-Click Role Switcher */}
+        <div className="relative pl-2 border-l border-[#252833] flex-shrink-0" ref={dropdownRef}>
+          <button
+            onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+            className="flex items-center space-x-2 p-1 rounded-lg hover:bg-[#1E202A] transition-colors cursor-pointer text-left"
+            title="Institutional RBAC Profile & Role Switcher"
           >
-            {currentPersona.photoUrl ? (
-              <img
-                src={currentPersona.photoUrl}
-                alt={currentPersona.characterName}
-                className="w-full h-full object-cover object-center"
-              />
-            ) : (
-              currentPersona.initials
-            )}
-          </div>
-          <div className="hidden xl:block text-left flex-shrink-0">
-            <div className="text-[11px] font-bold text-[#E2E1E6] truncate max-w-[110px]">
-              {currentPersona.characterName}
+            <div
+              className={`w-7 h-7 rounded-full bg-[#1A1C24] border ${currentRoleStyle.border} flex items-center justify-center text-xs font-bold text-white shadow flex-shrink-0 overflow-hidden`}
+            >
+              {authSession ? (
+                <span className="font-mono text-[10px]">{authSession.user.username.slice(0, 2).toUpperCase()}</span>
+              ) : currentPersona.photoUrl ? (
+                <img
+                  src={currentPersona.photoUrl}
+                  alt={currentPersona.characterName}
+                  className="w-full h-full object-cover object-center"
+                />
+              ) : (
+                <User className="w-4 h-4 text-[#8A8594]" />
+              )}
             </div>
-            <div className="text-[9px] text-[#F5D061] font-mono uppercase truncate max-w-[110px]">
-              {currentPersona.role}
+            <div className="hidden xl:block text-left flex-shrink-0">
+              <div className="flex items-center space-x-1">
+                <span className="text-[11px] font-bold text-[#E2E1E6] truncate max-w-[110px]">
+                  {authSession?.user.full_name || currentPersona.characterName}
+                </span>
+                <ChevronDown className="w-3 h-3 text-[#8A8594]" />
+              </div>
+              <div className="flex items-center space-x-1 mt-0.5">
+                <span className={`text-[8px] font-mono uppercase px-1 py-0.2 rounded font-bold ${currentRoleStyle.bg} ${currentRoleStyle.text} border ${currentRoleStyle.border}`}>
+                  {currentRoleStyle.label}
+                </span>
+              </div>
             </div>
-          </div>
-        </button>
+          </button>
+
+          {/* Role Switcher & Identity Popover Dropdown */}
+          {isRoleDropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 w-80 bg-[#0F172A] border border-[#334155] rounded-xl shadow-2xl p-4 z-50 animate-fadeIn font-mono text-xs">
+              {/* Header: Current User Identity & Security Clearance */}
+              <div className="pb-3 border-b border-[#1E293B]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Shield className="w-4 h-4 text-[#F5D061]" />
+                    <span className="font-bold text-white text-xs">ACTIVE OPERATOR</span>
+                  </div>
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${currentRoleStyle.bg} ${currentRoleStyle.text} border ${currentRoleStyle.border}`}>
+                    {currentRoleStyle.label}
+                  </span>
+                </div>
+                <div className="mt-2 text-[11px] text-[#E2E8F0] font-bold">
+                  {authSession?.user.full_name || "Institutional Operator"}
+                </div>
+                <div className="text-[10px] text-[#94A3B8]">
+                  ID: {authSession?.user.user_id || "USR-DEMO"} • Dept: {authSession?.user.department || "Operations"}
+                </div>
+                <div className="mt-1 flex items-center space-x-1.5 text-[9px] text-[#64748B]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>HMAC-SHA256 Token • Session Active</span>
+                </div>
+              </div>
+
+              {/* 1-Click Demo Role Switcher Matrix */}
+              <div className="py-3">
+                <div className="text-[10px] font-bold text-[#F5D061] uppercase tracking-wider mb-2 flex items-center justify-between">
+                  <span>1-Click Role Switcher</span>
+                  <span className="text-[8px] text-[#94A3B8] font-normal">INSTANT EVALUATION</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  {DEMO_ACCOUNTS.map((acc) => {
+                    const isCurrent = authSession?.user.role === acc.role;
+                    return (
+                      <button
+                        key={acc.role}
+                        onClick={() => handleQuickSwitchRole(acc.role)}
+                        className={`w-full text-left p-2 rounded-lg border transition-all flex items-center justify-between cursor-pointer ${
+                          isCurrent
+                            ? "bg-[#1E293B] border-[#F5D061] text-white"
+                            : "bg-[#070B14]/60 border-[#1E293B] hover:border-[#334155] hover:bg-[#1E293B]/50 text-[#CBD5E1]"
+                        }`}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              acc.role === "SUPER_ADMIN"
+                                ? "bg-amber-400"
+                                : acc.role === "FACILITY_MANAGER"
+                                ? "bg-sky-400"
+                                : acc.role === "HOD_ACADEMIC"
+                                ? "bg-purple-400"
+                                : acc.role === "TECHNICIAN"
+                                ? "bg-orange-400"
+                                : "bg-emerald-400"
+                            }`}
+                          />
+                          <div>
+                            <div className="text-[10px] font-bold leading-none">{acc.roleTitle}</div>
+                            <div className="text-[8px] text-[#64748B] mt-0.5">{acc.username}</div>
+                          </div>
+                        </div>
+
+                        {isCurrent ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#F5D061]" />
+                        ) : (
+                          <span className="text-[9px] text-[#94A3B8] hover:text-[#F5D061]">Switch →</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="pt-2 border-t border-[#1E293B] flex items-center justify-between text-[10px]">
+                {onOpenProfile && (
+                  <button
+                    onClick={() => {
+                      setIsRoleDropdownOpen(false);
+                      onOpenProfile();
+                    }}
+                    className="text-[#9D8EB5] hover:text-white underline cursor-pointer"
+                  >
+                    View Persona Lore
+                  </button>
+                )}
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-1 text-red-400 hover:text-red-300 font-bold ml-auto cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

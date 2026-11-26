@@ -13,14 +13,31 @@ import {
   WorkOrder,
   CampusOverview,
 } from "@/types/digital-twin";
+import { AuthService } from "./auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
-// Demo Director/Principal token header for authorized API requests
-const DEFAULT_HEADERS = {
-  "Content-Type": "application/json",
-  "X-User-Id": "USR-PRINCIPAL",
-};
+export function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const session = AuthService.getSession();
+  if (session?.token) {
+    headers["Authorization"] = `Bearer ${session.token}`;
+    headers["X-User-Id"] = session.user.user_id;
+  } else {
+    headers["X-User-Id"] = "USR-SUPER-ADMIN";
+  }
+  return headers;
+}
+
+const DEFAULT_HEADERS = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) => (getAuthHeaders() as any)[prop],
+  has: (_target, prop: string) => prop in getAuthHeaders(),
+  ownKeys: () => Object.keys(getAuthHeaders()),
+  getOwnPropertyDescriptor: (_target, prop: string) =>
+    Object.getOwnPropertyDescriptor(getAuthHeaders(), prop),
+});
 
 export class DigitalTwinApi {
   /**
@@ -32,7 +49,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn("Using offline fallback entities:", err);
@@ -49,7 +69,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn(`Error fetching entity ${entityId}:`, err);
@@ -66,7 +89,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn("Using fallback relationships:", err);
@@ -83,7 +109,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn("Error fetching campus graph:", err);
@@ -97,7 +126,10 @@ export class DigitalTwinApi {
   static async getDemoStatus(): Promise<any> {
     try {
       const res = await fetch(`${API_BASE}/demo/status`, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       return null;
@@ -107,7 +139,10 @@ export class DigitalTwinApi {
   static async getDemoState(): Promise<any> {
     try {
       const res = await fetch(`${API_BASE}/demo/state`, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       return null;
@@ -116,16 +151,28 @@ export class DigitalTwinApi {
 
   static async triggerDemoInterrupt(): Promise<any> {
     const res = await fetch(`${API_BASE}/demo/interrupt`, { method: "POST", headers: DEFAULT_HEADERS });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
   static async triggerDemoRecovery(): Promise<any> {
     const res = await fetch(`${API_BASE}/demo/recovery`, { method: "POST", headers: DEFAULT_HEADERS });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
   static async triggerDemoRestore(): Promise<any> {
     const res = await fetch(`${API_BASE}/demo/restore`, { method: "POST", headers: DEFAULT_HEADERS });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -135,6 +182,10 @@ export class DigitalTwinApi {
       headers: DEFAULT_HEADERS,
       body: JSON.stringify({ scenario, entity_id: entityId }),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -143,6 +194,10 @@ export class DigitalTwinApi {
       method: "POST",
       headers: DEFAULT_HEADERS,
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -151,7 +206,70 @@ export class DigitalTwinApi {
       method: "POST",
       headers: DEFAULT_HEADERS,
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
+  }
+
+  /**
+   * Five Controlled Incident Scenarios API
+   */
+  static async getScenarios(): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/demo/scenarios`, { cache: "no-store" });
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+      return await res.json();
+    } catch (err) {
+      console.warn("Error fetching scenarios:", err);
+      return { active_scenario: "NORMAL", scenario_phase: "IDLE", scenarios: [] };
+    }
+  }
+
+  static async selectScenario(scenario: string, action: string = "start"): Promise<any> {
+    const res = await fetch(`${API_BASE}/demo/scenario/select`, {
+      method: "POST",
+      headers: DEFAULT_HEADERS,
+      body: JSON.stringify({ scenario, action }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  /**
+   * Incident Event Replay Engine API (Innovation)
+   */
+  static async getReplays(): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/demo/replays`, { cache: "no-store" });
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+      return await res.json();
+    } catch (err) {
+      return { replays: [] };
+    }
+  }
+
+  static async getReplayTimeline(incidentId: string): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/demo/replay/${incidentId}`, { cache: "no-store" });
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+      return await res.json();
+    } catch (err) {
+      return null;
+    }
   }
 
   /**
@@ -166,7 +284,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       const data = await res.json();
       return {
         upstream: Array.isArray(data.upstream_dependencies)
@@ -204,7 +325,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn("Error fetching telemetry events:", err);
@@ -221,7 +345,10 @@ export class DigitalTwinApi {
       headers: DEFAULT_HEADERS,
       body: JSON.stringify(eventData),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -234,7 +361,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn("Error fetching incidents:", err);
@@ -250,7 +380,10 @@ export class DigitalTwinApi {
       method: "POST",
       headers: DEFAULT_HEADERS,
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -275,7 +408,10 @@ export class DigitalTwinApi {
         parameters: simData.parameters || {},
       }),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -287,7 +423,10 @@ export class DigitalTwinApi {
       method: "POST",
       headers: DEFAULT_HEADERS,
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -300,7 +439,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn("Using default campus overview:", err);
@@ -325,7 +467,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn("Error fetching resilience index:", err);
@@ -362,7 +507,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn("Error fetching SPOF:", err);
@@ -385,7 +533,10 @@ export class DigitalTwinApi {
         headers: DEFAULT_HEADERS,
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
       return await res.json();
     } catch (err) {
       console.warn("Error fetching ML models:", err);
@@ -406,7 +557,10 @@ export class DigitalTwinApi {
       headers: DEFAULT_HEADERS,
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -430,7 +584,10 @@ export class DigitalTwinApi {
         severity: data.severity || "MEDIUM",
       }),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -452,7 +609,10 @@ export class DigitalTwinApi {
         notes: notes,
       }),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -465,7 +625,10 @@ export class DigitalTwinApi {
       headers: DEFAULT_HEADERS,
       body: JSON.stringify(woData),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 
@@ -477,7 +640,10 @@ export class DigitalTwinApi {
       method: "POST",
       headers: DEFAULT_HEADERS,
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 }

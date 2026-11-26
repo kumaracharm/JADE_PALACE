@@ -15,6 +15,8 @@ import {
   RotateCcw,
   Eye,
   Sliders,
+  X,
+  Wrench,
 } from "lucide-react";
 import {
   CAMPUS_3D_LAYERS,
@@ -83,27 +85,100 @@ export function CampusCanvas3D({
     isIncident: boolean;
   }[]>([]);
 
+  // Selected Entity Vector & Topology Edge Metadata
+  const [selectedVectorInfo, setSelectedVectorInfo] = useState<{
+    name: string;
+    id: string;
+    code: string;
+    layerTitle: string;
+    department: string;
+    criticality: string;
+    standardLoadKW: number;
+    dx: number;
+    dy: number;
+    dz: number;
+    dist: number;
+    edge: string;
+    status: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!selectedEntityId) {
+      setSelectedVectorInfo(null);
+      return;
+    }
+    const r = CAMPUS_3D_ROOMS.find(
+      (rm) => rm.backendEntityId === selectedEntityId || rm.id === selectedEntityId
+    );
+    if (r) {
+      const fIdx = CAMPUS_3D_LAYERS.findIndex((l) => l.id === r.layerId);
+      const targetY = CAMPUS_3D_LAYERS[fIdx]?.elevationY || 0;
+      const subX = -11;
+      const subY = 1.2;
+      const subZ = -4.5;
+      const dx = r.position[0] - subX;
+      const dy = targetY + r.position[1] - subY;
+      const dz = r.position[2] - subZ;
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+      let edgePath = "11kV SUB-01 ──▶ FEEDER-F1 ──▶ LV-BUS ──▶ " + r.id;
+      if (r.id.startsWith("CR-")) {
+        edgePath = "11kV SUB-01 ──▶ FEEDER-F1 (ACAD) ──▶ DIST-PANEL-L2 ──▶ " + r.name;
+      } else if (r.id.startsWith("LAB-") || r.id.startsWith("EE-")) {
+        edgePath = "11kV SUB-01 ──▶ FEEDER-F2 (LABS) ──▶ RCD-PANEL-L1 ──▶ " + r.name;
+      } else if (r.id.startsWith("SRV-") || r.id.startsWith("CTR-")) {
+        edgePath = "11kV SUB-01 ──▶ UPS-01 (DUAL TIE) ──▶ PDU-RACK-L3 ──▶ " + r.name;
+      }
+
+      setSelectedVectorInfo({
+        name: r.name,
+        id: r.id,
+        code: r.code || r.id,
+        layerTitle: CAMPUS_3D_LAYERS[fIdx]?.title || "Campus Asset",
+        department: r.department || "Core Infrastructure",
+        criticality: r.criticality || "STANDARD",
+        standardLoadKW: r.standardLoadKW || 8.0,
+        dx: Math.round(dx * 10) / 10,
+        dy: Math.round(dy * 10) / 10,
+        dz: Math.round(dz * 10) / 10,
+        dist: Math.round(dist * 10) / 10,
+        edge: edgePath,
+        status: incidentAffectedIds.has(r.id) ? "SEVERED CASCADE" : "OPERATIONAL",
+      });
+    } else {
+      setSelectedVectorInfo(null);
+    }
+  }, [selectedEntityId, incidentAffectedIds]);
+
   // Live SSE Telemetry Connection from Shared FastAPI Backend
   const [liveTelemetry, setLiveTelemetry] = useState<{
     voltage_v?: number;
     active_power_kw?: number;
     current_a?: number;
     temperature_c?: number;
+    water_pressure?: number;
+    network_latency_ms?: number;
+    packet_loss_pct?: number;
     sequence?: number;
     timestamp?: string;
     scenario?: string;
     status?: string;
     entity_id?: string;
+    affected_entities?: string[];
   }>({
     voltage_v: 415.0,
     active_power_kw: 142.5,
     current_a: 198.0,
     temperature_c: 23.4,
+    water_pressure: 3.42,
+    network_latency_ms: 4.8,
+    packet_loss_pct: 0.0,
     sequence: 1000,
     timestamp: "",
     scenario: "NORMAL",
     status: "OPERATIONAL",
     entity_id: "FEEDER-LABS-F1",
+    affected_entities: [],
   });
   const [isSseConnected, setIsSseConnected] = useState<boolean>(false);
 
@@ -129,11 +204,15 @@ export function CampusCanvas3D({
               active_power_kw: data.active_power_kw ?? data.telemetry?.active_power_kw ?? prev.active_power_kw,
               current_a: data.current_a ?? data.telemetry?.current_a ?? prev.current_a,
               temperature_c: data.temperature_c ?? data.telemetry?.temperature_c ?? prev.temperature_c,
+              water_pressure: data.water_pressure ?? data.telemetry?.water_pressure ?? prev.water_pressure,
+              network_latency_ms: data.network_latency_ms ?? data.telemetry?.network_latency_ms ?? prev.network_latency_ms,
+              packet_loss_pct: data.packet_loss_pct ?? data.telemetry?.packet_loss_pct ?? prev.packet_loss_pct,
               sequence: data.sequence ?? prev.sequence,
               timestamp: data.timestamp ?? prev.timestamp,
               scenario: data.scenario ?? data.demo_state ?? prev.scenario,
               status: data.status ?? prev.status,
               entity_id: data.entity_id ?? prev.entity_id,
+              affected_entities: data.affected_entities ?? prev.affected_entities,
             }));
           } catch (err) {}
         };
@@ -183,6 +262,7 @@ export function CampusCanvas3D({
     showPulses,
     incidentAffectedIds,
     selectedEntityId,
+    liveTelemetry,
   });
 
   useEffect(() => {
@@ -194,6 +274,7 @@ export function CampusCanvas3D({
       showPulses,
       incidentAffectedIds,
       selectedEntityId,
+      liveTelemetry,
     };
   }, [
     selectedLayerId,
@@ -203,6 +284,7 @@ export function CampusCanvas3D({
     showPulses,
     incidentAffectedIds,
     selectedEntityId,
+    liveTelemetry,
   ]);
 
   // Active selected room derived from selectedEntityId
@@ -1156,6 +1238,56 @@ export function CampusCanvas3D({
       });
     });
 
+    // 5b. Selected Entity Flow Graph Connection Dot Matrix & Vector
+    const selectedVectorGroup = new THREE.Group();
+    campusRoot.add(selectedVectorGroup);
+
+    // Glowing Vector Line between Substation and Selected Room
+    const vectorLineGeom = new THREE.BufferGeometry();
+    const vectorLineMat = new THREE.LineBasicMaterial({
+      color: 0xd4af37,
+      transparent: true,
+      opacity: 0.9,
+      linewidth: 3,
+    });
+    const vectorLineMesh = new THREE.Line(vectorLineGeom, vectorLineMat);
+    selectedVectorGroup.add(vectorLineMesh);
+
+    // Dot Matrix Particle Flow along the Vector (24 dots)
+    const dotCount = 24;
+    const dotPositions = new Float32Array(dotCount * 3);
+    const dotGeom = new THREE.BufferGeometry();
+    dotGeom.setAttribute("position", new THREE.BufferAttribute(dotPositions, 3));
+    const dotMat = new THREE.PointsMaterial({
+      color: 0xf5d061,
+      size: 0.35,
+      transparent: true,
+      opacity: 0.95,
+    });
+    const dotParticles = new THREE.Points(dotGeom, dotMat);
+    selectedVectorGroup.add(dotParticles);
+
+    // Bounding Box Highlight with Corner Matrix Nodes for Selected Entity
+    const boxGeom = new THREE.BoxGeometry(1, 1, 1);
+    const boxEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(boxGeom),
+      new THREE.LineBasicMaterial({ color: 0xd4af37, transparent: true, opacity: 0.95, linewidth: 2 })
+    );
+    selectedVectorGroup.add(boxEdges);
+
+    // 8 Corner Vertex Nodes
+    const cornerDotsGeom = new THREE.BufferGeometry();
+    const cornerDotsPositions = new Float32Array(8 * 3);
+    cornerDotsGeom.setAttribute("position", new THREE.BufferAttribute(cornerDotsPositions, 3));
+    const cornerDotsMat = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 0.45,
+      transparent: true,
+      opacity: 1.0,
+    });
+    const cornerDots = new THREE.Points(cornerDotsGeom, cornerDotsMat);
+    selectedVectorGroup.add(cornerDots);
+
     // 6. Raycasting Setup for Room & Furniture Hover & Click
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
@@ -1269,21 +1401,52 @@ export function CampusCanvas3D({
           current.selectedEntityId === room.backendEntityId ||
           current.selectedEntityId === room.id;
 
-        // Check if room or its backend entity is impacted by incident/chaos
-        const isPowerCut =
+        // Check if room or its backend entity is impacted by incident/chaos or live scenario
+        const liveScenario = current.liveTelemetry?.scenario || "NORMAL";
+        const liveAffected = current.liveTelemetry?.affected_entities || [];
+        const isImpacted =
           current.incidentAffectedIds.has(room.id) ||
-          (room.backendEntityId ? current.incidentAffectedIds.has(room.backendEntityId) : false);
+          (room.backendEntityId ? current.incidentAffectedIds.has(room.backendEntityId) : false) ||
+          liveAffected.includes(room.id) ||
+          (room.backendEntityId ? liveAffected.includes(room.backendEntityId) : false);
 
         const fillMat = fillMesh.material as THREE.MeshBasicMaterial;
         const edgeMat = edgeLines.material as THREE.LineBasicMaterial;
 
-        if (isPowerCut) {
-          // Severed / Impacted by Cascading Failure: Pulsing Warning Red
-          const pulseRed = 0.5 + 0.5 * Math.sin(elapsed * 6);
-          fillMat.color.setHex(0x7f1d1d);
-          fillMat.opacity = 0.45;
-          edgeMat.color.setHex(0xef4444);
-          edgeMat.opacity = 0.6 + pulseRed * 0.4;
+        if (isImpacted && (liveScenario !== "NORMAL" || current.incidentAffectedIds.size > 0)) {
+          // Dynamic Scenario Pulsing Highlights
+          const pulse = 0.5 + 0.5 * Math.sin(elapsed * 6);
+          if (liveScenario === "WATER") {
+            // Water Supply Disruption: Cyan
+            fillMat.color.setHex(0x0c4a6e);
+            fillMat.opacity = 0.5;
+            edgeMat.color.setHex(0x38bdf8);
+            edgeMat.opacity = 0.6 + pulse * 0.4;
+          } else if (liveScenario === "HVAC") {
+            // HVAC Thermal: Orange / Fire
+            fillMat.color.setHex(0x7c2d12);
+            fillMat.opacity = 0.5;
+            edgeMat.color.setHex(0xf97316);
+            edgeMat.opacity = 0.6 + pulse * 0.4;
+          } else if (liveScenario === "NETWORK") {
+            // Network Outage: Violet / Magenta
+            fillMat.color.setHex(0x581c87);
+            fillMat.opacity = 0.5;
+            edgeMat.color.setHex(0xa855f7);
+            edgeMat.opacity = 0.6 + pulse * 0.4;
+          } else if (liveScenario === "ACADEMIC") {
+            // Academic Disruption: Amber
+            fillMat.color.setHex(0x78350f);
+            fillMat.opacity = 0.5;
+            edgeMat.color.setHex(0xf59e0b);
+            edgeMat.opacity = 0.6 + pulse * 0.4;
+          } else {
+            // Electrical Feeder Failure / Default: Warning Red
+            fillMat.color.setHex(0x7f1d1d);
+            fillMat.opacity = 0.5;
+            edgeMat.color.setHex(0xef4444);
+            edgeMat.opacity = 0.6 + pulse * 0.4;
+          }
         } else if (isSelected) {
           // High-Res Selected Room: Luminous Gold
           fillMat.color.setHex(0x272433);
@@ -1392,6 +1555,69 @@ export function CampusCanvas3D({
         }
       });
 
+      // 4b. Update Selected Entity Dot Matrix Vector & Edge Wireframe Highlight
+      if (current.selectedEntityId) {
+        const targetRoom = CAMPUS_3D_ROOMS.find(
+          (r) => r.backendEntityId === current.selectedEntityId || r.id === current.selectedEntityId
+        );
+        if (targetRoom) {
+          selectedVectorGroup.visible = true;
+          const fIdx = CAMPUS_3D_LAYERS.findIndex((l) => l.id === targetRoom.layerId);
+          const roomFloorY =
+            targetRoom.layerId === "ground"
+              ? 0
+              : (CAMPUS_3D_LAYERS[fIdx]?.elevationY || 0) + fIdx * current.explodedDistance;
+          const groundFloorY = 0;
+
+          const subPos = new THREE.Vector3(-11, groundFloorY + 1.2, -4.5);
+          const roomPos = new THREE.Vector3(
+            targetRoom.position[0],
+            roomFloorY + targetRoom.position[1],
+            targetRoom.position[2]
+          );
+
+          // Update Vector Line
+          vectorLineGeom.setFromPoints([subPos, roomPos]);
+
+          // Animate Dot Matrix Particle Flow along Vector
+          const posAttr = dotGeom.getAttribute("position") as THREE.BufferAttribute;
+          for (let i = 0; i < dotCount; i++) {
+            const progress = (elapsed * 0.45 + i / dotCount) % 1.0;
+            const px = THREE.MathUtils.lerp(subPos.x, roomPos.x, progress);
+            const py = THREE.MathUtils.lerp(subPos.y, roomPos.y, progress) + Math.sin(progress * Math.PI) * 1.6;
+            const pz = THREE.MathUtils.lerp(subPos.z, roomPos.z, progress);
+            posAttr.setXYZ(i, px, py, pz);
+          }
+          posAttr.needsUpdate = true;
+
+          // Position & Scale Bounding Wireframe Box
+          const rWidth = (targetRoom.dimensions?.width || 8.0) * 1.05;
+          const rHeight = (targetRoom.dimensions?.height || 2.8) * 1.05;
+          const rDepth = (targetRoom.dimensions?.depth || 7.0) * 1.05;
+
+          boxEdges.position.copy(roomPos);
+          boxEdges.scale.set(rWidth, rHeight, rDepth);
+
+          // Update 8 Corner Vertex Nodes
+          const hw = rWidth / 2;
+          const hh = rHeight / 2;
+          const hd = rDepth / 2;
+          const cAttr = cornerDotsGeom.getAttribute("position") as THREE.BufferAttribute;
+          const corners = [
+            [-hw, -hh, -hd], [hw, -hh, -hd], [hw, hh, -hd], [-hw, hh, -hd],
+            [-hw, -hh, hd], [hw, -hh, hd], [hw, hh, hd], [-hw, hh, hd],
+          ];
+          corners.forEach(([cx, cy, cz], cIdx) => {
+            cAttr.setXYZ(cIdx, roomPos.x + cx, roomPos.y + cy, roomPos.z + cz);
+          });
+          cAttr.needsUpdate = true;
+        } else {
+          selectedVectorGroup.visible = false;
+        }
+      } else {
+        selectedVectorGroup.visible = false;
+      }
+
       // 5. Update Screen Space Tracking Overlay Tags
       if (Math.floor(elapsed * 60) % 5 === 0 && container) {
         const rect = container.getBoundingClientRect();
@@ -1495,230 +1721,197 @@ export function CampusCanvas3D({
       {/* 1. THREE.JS VIEWPORT CONTAINER */}
       <div ref={containerRef} className="w-full h-full relative" />
 
-      {/* 2. FLOATING TOP HUD: FLOOR SELECTOR & VIEW ANGLE CONTROLS */}
-      <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
-        {/* Floor Level Selector Pills */}
-        <div className="flex items-center space-x-1.5 p-1 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl">
-          <button
-            onClick={() => handleSelectLayer("all")}
-            className={`px-2.5 py-1 text-xs font-mono rounded transition-all ${
-              selectedLayerId === "all"
-                ? "bg-[#D4AF37] text-[#121316] font-bold shadow"
-                : "text-[#9D8EB5] hover:text-[#FFFFFF]"
-            }`}
-          >
-            All Levels
-          </button>
-          {CAMPUS_3D_LAYERS.map((layer) => (
-            <button
-              key={layer.id}
-              onClick={() => handleSelectLayer(layer.id)}
-              className={`px-2 py-1 text-xs font-mono rounded transition-all ${
-                selectedLayerId === layer.id
-                  ? "bg-[#D4AF37] text-[#121316] font-bold shadow"
-                  : "text-[#8A8594] hover:text-[#E2E1E6]"
-              }`}
-            >
-              {layer.planeNumber}
-            </button>
-          ))}
-        </div>
-
-        {/* Live SSE Telemetry HUD Indicator */}
-        <div className="hidden md:flex items-center space-x-2.5 px-3 py-1.5 rounded-lg bg-[#14151A]/95 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-2xl text-xs font-mono">
-          <span className="flex items-center space-x-1.5 text-[11px] font-bold text-emerald-400">
-            <span className={`w-2 h-2 rounded-full ${isSseConnected ? "bg-emerald-400 animate-pulse" : "bg-amber-500"}`} />
-            <span>{isSseConnected ? "LIVE SSE" : "CONNECTING"}</span>
-          </span>
-          <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#2D2A38] text-[#BDB0D3] font-bold border border-[#5E5073]/50">
-            SYNTHETIC LIVE DATA
-          </span>
-          <span className="text-[10px] font-bold text-[#D4AF37]">
-            SEQ #{liveTelemetry.sequence || 1000}
-          </span>
-          <span className="text-[10px] text-gray-400">
-            {liveTelemetry.timestamp ? new Date(liveTelemetry.timestamp).toLocaleTimeString([], { hour12: false }) : ""}
-          </span>
-          <span className="text-gray-600">|</span>
-          <div className="flex items-center space-x-2 text-[11px] text-gray-300">
-            <span>VOLT: <strong className="text-amber-400 font-mono">{liveTelemetry.voltage_v?.toFixed(1) || "415.0"} V</strong></span>
-            <span className="text-gray-600">|</span>
-            <span>POWER: <strong className={`font-mono ${liveTelemetry.status === "OFFLINE_TRIPPED" || liveTelemetry.scenario === "FEEDER_FAILURE" ? "text-red-400" : "text-amber-400"}`}>
-              {liveTelemetry.status === "OFFLINE_TRIPPED" || liveTelemetry.scenario === "FEEDER_FAILURE" ? "0.0 kW (TRIPPED)" : `${liveTelemetry.active_power_kw?.toFixed(1) || "142.5"} kW`}
-            </strong></span>
-            <span className="text-gray-600">|</span>
-            <span>CURR: <strong className="text-amber-400 font-mono">{liveTelemetry.current_a?.toFixed(1) || "198.0"} A</strong></span>
-            <span className="text-gray-600">|</span>
-            <span>TEMP: <strong className="text-purple-300 font-mono">{liveTelemetry.temperature_c?.toFixed(1) || "23.4"} °C</strong></span>
-          </div>
-        </div>
-
-        {/* Camera View Presets */}
-        <div className="flex items-center space-x-1.5 p-1 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl">
-          <button
-            onClick={() => setViewPreset("iso")}
-            className={`px-2 py-1 text-xs font-mono rounded transition-all ${
-              viewPreset === "iso"
-                ? "bg-[#D4AF37] text-[#121316] font-bold"
-                : "text-[#8A8594] hover:text-[#FFFFFF]"
-            }`}
-            title="Isometric 3D Vantage"
-          >
-            ISO
-          </button>
-          <button
-            onClick={() => setViewPreset("top")}
-            className={`px-2 py-1 text-xs font-mono rounded transition-all ${
-              viewPreset === "top"
-                ? "bg-[#D4AF37] text-[#121316] font-bold"
-                : "text-[#8A8594] hover:text-[#FFFFFF]"
-            }`}
-            title="Orthographic Top-Down View"
-          >
-            TOP
-          </button>
-          <button
-            onClick={() => setViewPreset("front")}
-            className={`px-2 py-1 text-xs font-mono rounded transition-all ${
-              viewPreset === "front"
-                ? "bg-[#D4AF37] text-[#121316] font-bold"
-                : "text-[#8A8594] hover:text-[#FFFFFF]"
-            }`}
-            title="Front Elevation"
-          >
-            FRONT
-          </button>
-          <button
-            onClick={() => setViewPreset("side")}
-            className={`px-2 py-1 text-xs font-mono rounded transition-all ${
-              viewPreset === "side"
-                ? "bg-[#D4AF37] text-[#121316] font-bold"
-                : "text-[#8A8594] hover:text-[#FFFFFF]"
-            }`}
-            title="Side Elevation"
-          >
-            SIDE
-          </button>
-        </div>
+      {/* 2. CAMERA VIEW PRESETS (COMPACT TOP-RIGHT EDGE CONTROLS) */}
+      <div className="absolute top-3 right-3 flex items-center space-x-1.5 p-1 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl z-10">
+        <button
+          onClick={() => setViewPreset("iso")}
+          className={`px-2 py-1 text-xs font-mono rounded transition-all ${
+            viewPreset === "iso"
+              ? "bg-[#D4AF37] text-[#121316] font-bold"
+              : "text-[#8A8594] hover:text-[#FFFFFF]"
+          }`}
+          title="Isometric 3D Vantage"
+        >
+          ISO
+        </button>
+        <button
+          onClick={() => setViewPreset("top")}
+          className={`px-2 py-1 text-xs font-mono rounded transition-all ${
+            viewPreset === "top"
+              ? "bg-[#D4AF37] text-[#121316] font-bold"
+              : "text-[#8A8594] hover:text-[#FFFFFF]"
+          }`}
+          title="Orthographic Top-Down View"
+        >
+          TOP
+        </button>
+        <button
+          onClick={() => setViewPreset("front")}
+          className={`px-2 py-1 text-xs font-mono rounded transition-all ${
+            viewPreset === "front"
+              ? "bg-[#D4AF37] text-[#121316] font-bold"
+              : "text-[#8A8594] hover:text-[#FFFFFF]"
+          }`}
+          title="Front Elevation"
+        >
+          FRONT
+        </button>
       </div>
 
-      {/* 3. SLEEK FLOATING BOTTOM CONTROLS: EXPLODED VIEW & UTILITY TOGGLES */}
-      <div className="absolute bottom-3 left-3 flex items-center space-x-3 pointer-events-none z-10">
-        {/* Exploded View Height Slider */}
-        <div className="px-3 py-1.5 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl flex items-center space-x-2">
-          <Sliders className="w-3.5 h-3.5 text-[#D4AF37]" />
-          <span className="text-[10px] font-mono font-bold text-[#D4AF37]">EXPLODE</span>
-          <input
-            type="range"
-            min="0"
-            max="8"
-            step="0.2"
-            value={explodedDistance}
-            onChange={(e) => setExplodedDistance(parseFloat(e.target.value))}
-            className="w-20 sm:w-28 accent-[#D4AF37] cursor-pointer"
-          />
-          <span className="text-[10px] font-mono text-[#F5D061] w-8 text-right">
-            {explodedDistance.toFixed(1)}m
-          </span>
-        </div>
+      {/* 3. COMPACT CLASSROOM / ENTITY INFO WINDOW (REDUCED MINIMAL FLOATING CARD) */}
+      {selectedVectorInfo && (
+        <div className="absolute top-14 right-4 z-20 w-[310px] max-w-[90vw] p-3 rounded-xl bg-[#0E0F14]/95 border border-[#252833] backdrop-blur-md shadow-2xl font-mono text-xs pointer-events-auto select-none animate-fadeIn">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between pb-1.5 border-b border-[#1E212B]">
+            <div className="flex items-center space-x-1.5">
+              <span className="font-bold text-[10px] px-1.5 py-0.5 rounded bg-[#312816] text-[#F5D061] border border-[#D4AF37]/40">
+                {selectedVectorInfo.id}
+              </span>
+              <span
+                className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                  selectedVectorInfo.status === "OPERATIONAL"
+                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40"
+                    : "bg-red-500/15 text-red-400 border border-red-500/40 animate-pulse"
+                }`}
+              >
+                ● {selectedVectorInfo.status}
+              </span>
+            </div>
+            <button
+              onClick={() => onSelectEntity("")}
+              className="text-[#8A8594] hover:text-white p-1 rounded hover:bg-white/10 transition-colors cursor-pointer"
+              title="Close window"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
-        {/* Utility Toggles */}
-        <div className="flex items-center space-x-1 p-1 rounded-lg bg-[#14151A]/90 border border-[#252833] backdrop-blur-md pointer-events-auto shadow-xl">
+          {/* Room Name & Spatial Location */}
+          <div className="mt-1.5">
+            <h3 className="text-xs font-bold text-white leading-tight truncate">
+              {selectedVectorInfo.name}
+            </h3>
+            <p className="text-[10px] text-[#8E8B99] mt-0.5 truncate">
+              {selectedVectorInfo.layerTitle} • {selectedVectorInfo.department}
+            </p>
+          </div>
+
+          {/* Dynamic Flow Graph with Synthetic Data Flow */}
+          <div className="my-2 p-2 rounded-lg bg-[#07080B] border border-[#1E212B]">
+            <div className="flex items-center justify-between text-[9px] text-[#8E8B99] mb-1.5">
+              <span className="flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <strong className="text-white uppercase tracking-wider text-[8.5px]">Energy & Data Flow</strong>
+              </span>
+              <span className="text-[8.5px] px-1 py-0.2 rounded bg-[#D4AF37]/20 text-[#F5D061] font-bold border border-[#D4AF37]/30">
+                SYNTHETIC LIVE
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="text-center px-1.5 py-1 rounded bg-[#14151C] border border-[#252836]">
+                <div className="text-[8.5px] text-[#F5D061] font-bold">11kV SUB</div>
+                <div className="text-[7.5px] text-[#8E8B99]">415V Grid</div>
+              </div>
+
+              <div className="flex-1 mx-1 relative flex items-center justify-center">
+                <div className="w-full h-0.5 bg-[#252836] relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#F5D061] to-transparent animate-pulse" />
+                </div>
+                <Zap className="w-2.5 h-2.5 text-[#F5D061] mx-0.5 shrink-0" />
+              </div>
+
+              <div className="text-center px-1.5 py-1 rounded bg-[#14151C] border border-[#252836]">
+                <div className="text-[8.5px] text-amber-300 font-bold">FEEDER-F1</div>
+                <div className="text-[7.5px] text-[#8E8B99]">Dist Bus</div>
+              </div>
+
+              <div className="flex-1 mx-1 relative flex items-center justify-center">
+                <div className="w-full h-0.5 bg-[#252836] relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-pulse" />
+                </div>
+                <Activity className="w-2.5 h-2.5 text-emerald-400 mx-0.5 shrink-0" />
+              </div>
+
+              <div className="text-center px-1.5 py-1 rounded bg-[#14151C] border border-[#D4AF37]/40">
+                <div className="text-[8.5px] text-[#F5D061] font-bold truncate max-w-[60px]">{selectedVectorInfo.id}</div>
+                <div className="text-[7.5px] text-emerald-400">
+                  {selectedVectorInfo.status === "OPERATIONAL" ? "ONLINE" : "SEVERED"}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Spatial Vector Coordinates & Specs */}
+          <div className="text-[9.5px] text-[#8E8B99] space-y-1 pt-1 border-t border-[#1C1F28]">
+            <div className="flex justify-between">
+              <span>SPATIAL VECTOR:</span>
+              <span className="text-[#F5D061] font-bold">
+                ΔX: {selectedVectorInfo.dx > 0 ? `+${selectedVectorInfo.dx}` : selectedVectorInfo.dx}m | ΔY: +{selectedVectorInfo.dy}m | ΔZ: {selectedVectorInfo.dz > 0 ? `+${selectedVectorInfo.dz}` : selectedVectorInfo.dz}m
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>EUCLIDEAN DIST:</span>
+              <span className="text-white font-bold">{selectedVectorInfo.dist}m</span>
+            </div>
+            <div className="flex justify-between">
+              <span>CRITICALITY / LOAD:</span>
+              <span className="text-white font-bold">
+                <span className="text-amber-400">{selectedVectorInfo.criticality}</span> • {selectedVectorInfo.standardLoadKW} kW Nom
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Action Button */}
+          <div className="mt-2 pt-1.5 border-t border-[#1C1F28]">
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.location.href = `/response?incident=${encodeURIComponent(selectedVectorInfo.id)}`;
+                }
+              }}
+              className="w-full py-1.5 px-2 rounded-lg bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 text-[#F5D061] border border-[#D4AF37]/40 text-[10px] font-bold flex items-center justify-center space-x-1.5 cursor-pointer transition-colors"
+            >
+              <Wrench className="w-3 h-3" />
+              <span>Dispatch Diagnostic Work Order</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 4. SLEEK FLOATING BOTTOM-LEFT CONTROLS (MATCHING REFERENCE SCREENSHOT) */}
+      <div className="absolute bottom-4 left-4 flex items-center space-x-2 pointer-events-auto z-20">
+        <div className="flex items-center space-x-1 p-1 rounded-xl bg-[#0E0F14]/90 border border-[#252833] backdrop-blur-md shadow-2xl font-mono">
           <button
             onClick={() => setShowPower(!showPower)}
-            className={`flex items-center space-x-1 px-2 py-1 text-[11px] font-mono rounded transition-all ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 text-xs font-mono rounded-lg transition-all cursor-pointer ${
               showPower
-                ? "bg-[#D4AF37]/20 text-[#F5D061] border border-[#D4AF37]/50 font-bold"
-                : "text-[#5A5565] border border-transparent"
+                ? "bg-[#2D2A1C] text-[#F5D061] border border-[#D4AF37]/50 font-bold"
+                : "text-[#8E8B99] hover:text-white border border-transparent"
             }`}
             title="Toggle 415V Power Grid Conduits"
           >
-            <Zap className="w-3 h-3 text-[#D4AF37]" />
-            <span className="hidden sm:inline">Power</span>
+            <Zap className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <span>Power</span>
           </button>
 
           <button
             onClick={() => setShowData(!showData)}
-            className={`flex items-center space-x-1 px-2 py-1 text-[11px] font-mono rounded transition-all ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 text-xs font-mono rounded-lg transition-all cursor-pointer ${
               showData
-                ? "bg-[#9D8EB5]/20 text-[#BDB0D3] border border-[#9D8EB5]/50 font-bold"
-                : "text-[#5A5565] border border-transparent"
+                ? "bg-[#252136] text-[#BDB0D3] border border-[#9D8EB5]/50 font-bold"
+                : "text-[#8E8B99] hover:text-white border border-transparent"
             }`}
             title="Toggle Fiber Data Conduits"
           >
-            <Network className="w-3 h-3 text-[#9D8EB5]" />
-            <span className="hidden sm:inline">Data</span>
+            <Network className="w-3.5 h-3.5 text-[#9D8EB5]" />
+            <span>Data</span>
           </button>
         </div>
       </div>
 
-      {/* 4. COMPACT FLOATING INSPECTION POPOVER WHEN AN ITEM IS SELECTED (Positioned safely top-left under HUD) */}
-      {selectedRoom && (
-        <div className="absolute top-14 left-3 p-3 rounded-lg bg-[#14151A]/95 border border-[#D4AF37]/50 backdrop-blur-md pointer-events-auto shadow-2xl max-w-[280px] z-20 font-mono text-xs">
-          <div className="flex items-center justify-between pb-1.5 border-b border-[#252833] mb-2">
-            <span className="text-[#FFFFFF] font-bold truncate max-w-[190px]">{selectedRoom.name}</span>
-            <button
-              onClick={() => onSelectEntity("")}
-              className="text-[#8A8594] hover:text-[#FFFFFF] p-0.5"
-              title="Close panel"
-            >
-              ×
-            </button>
-          </div>
-          <div className="space-y-1.5 text-[10px] text-[#A69FB1]">
-            <div className="flex justify-between">
-              <span className="text-[#767180]">Code:</span>
-              <span className="text-[#F5D061] font-bold">{selectedRoom.code}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#767180]">Entity ID:</span>
-              <span className="text-[#FFFFFF]">{selectedRoom.backendEntityId || selectedRoom.id}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#767180]">Live Voltage:</span>
-              <span className="text-[#E2E1E6] font-bold">
-                {incidentAffectedIds.has(selectedRoom.id) ||
-                (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId)) ||
-                liveTelemetry.scenario === "FEEDER_FAILURE"
-                  ? "0.0 V (COLLAPSE)"
-                  : `${liveTelemetry.voltage_v?.toFixed(1) || "415.0"} V`}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#767180]">Live Active Load:</span>
-              <span className="text-amber-400 font-bold">
-                {incidentAffectedIds.has(selectedRoom.id) ||
-                (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId)) ||
-                liveTelemetry.scenario === "FEEDER_FAILURE"
-                  ? "0.0 kW (TRIPPED)"
-                  : `${liveTelemetry.active_power_kw?.toFixed(1) || selectedRoom.standardLoadKW} kW`}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#767180]">Status:</span>
-              <span
-                className={
-                  incidentAffectedIds.has(selectedRoom.id) ||
-                  (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId)) ||
-                  liveTelemetry.scenario === "FEEDER_FAILURE"
-                    ? "text-[#EF4444] font-bold"
-                    : "text-[#10B981] font-bold"
-                }
-              >
-                {incidentAffectedIds.has(selectedRoom.id) ||
-                (selectedRoom.backendEntityId && incidentAffectedIds.has(selectedRoom.backendEntityId)) ||
-                liveTelemetry.scenario === "FEEDER_FAILURE"
-                  ? "SEVERED (TRIPPED)"
-                  : "NOMINAL (OPERATIONAL)"}
-              </span>
-            </div>
-            <div className="pt-1.5 border-t border-[#252833] flex justify-between text-[9px] text-[#767180]">
-              <span>Stream: <strong className="text-[#D4AF37]">SYNTHETIC LIVE DATA</strong></span>
-              <span>Seq: <strong className="text-emerald-400">#{liveTelemetry.sequence || 1000}</strong></span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Center Subtle Pill Handle (Matching Reference Image) */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-white/10 border border-white/5 pointer-events-none select-none z-10" />
     </div>
   );
 }

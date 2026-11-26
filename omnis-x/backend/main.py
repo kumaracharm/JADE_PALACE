@@ -95,6 +95,7 @@ app.include_router(api_router)
 
 
 @app.get("/health", tags=["Health"])
+@app.get("/api/v1/health", tags=["Health"])
 def health_check():
     """
     Liveness and readiness health probe.

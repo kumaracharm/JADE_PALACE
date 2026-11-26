@@ -46,12 +46,12 @@ export function EntityInspector({
   }>({ upstream: [], downstream: [] });
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Collapsible section states
+  // Collapsible section states (compact by default)
   const [openSections, setOpenSections] = useState({
-    identity: true,
+    identity: false,
     telemetry: true,
-    dependencies: true,
-    incidents: true,
+    dependencies: false,
+    incidents: false,
     metadata: false,
   });
 
@@ -114,44 +114,106 @@ export function EntityInspector({
   const healthScore = entity.operational_status === "OPERATIONAL" ? 98.4 : entity.operational_status === "DEGRADED" ? 64.0 : 12.0;
 
   return (
-    <aside className="w-80 lg:w-96 flex-shrink-0 bg-[#15161C] border-l border-[#272935] flex flex-col h-full shadow-2xl z-20 select-none min-h-0 overflow-hidden">
+    <aside className="absolute top-4 right-4 z-30 w-72 sm:w-80 max-h-[82vh] flex flex-col bg-[#121318]/95 backdrop-blur-xl border border-white/15 rounded-xl shadow-2xl overflow-hidden select-none animate-fadeIn">
       {/* 1. Header Bar in Charcoal + Gold */}
-      <div className="p-4 border-b border-[#272935] flex items-start justify-between bg-[#121318]">
+      <div className="p-3 border-b border-[#272935] flex items-start justify-between bg-[#121318]">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[#312816] text-[#F5D061] border border-[#D4AF37]/40">
+            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#312816] text-[#F5D061] border border-[#D4AF37]/40">
               {entity.entity_id}
             </span>
             <span
-              className={`font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${currentStatusStyle.bg} ${currentStatusStyle.text} ${currentStatusStyle.border}`}
+              className={`font-mono text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${currentStatusStyle.bg} ${currentStatusStyle.text} ${currentStatusStyle.border}`}
             >
               ● {entity.operational_status}
             </span>
           </div>
-          <h2 className="text-sm font-bold text-[#F0EDF5] mt-1.5 leading-snug">{entity.name}</h2>
-          <p className="text-[11px] text-[#9D8EB5] font-medium font-mono">{entity.location}</p>
+          <h2 className="text-xs font-bold text-[#F0EDF5] mt-1 leading-snug">{entity.name}</h2>
+          <p className="text-[10px] text-[#9D8EB5] font-medium font-mono">{entity.location}</p>
         </div>
 
         <button
           onClick={onClose}
           className="text-[#8A8594] hover:text-[#E2E1E6] p-1 rounded hover:bg-[#232530] transition-colors"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
+      {/* Dynamic Mini Flow Graph with Synthetic Data Flow */}
+      <div className="px-3 py-2 bg-[#0D0E13] border-b border-[#272935] font-mono text-[10px]">
+        <div className="flex items-center justify-between text-[#8A8594] mb-1.5">
+          <span className="flex items-center space-x-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <strong className="text-white text-[9px] uppercase tracking-wider">Energy & Data Flow</strong>
+          </span>
+          <span className="text-[9px] px-1 py-0.2 rounded bg-[#D4AF37]/20 text-[#F5D061] font-bold border border-[#D4AF37]/30">
+            SYNTHETIC LIVE
+          </span>
+        </div>
+
+        {/* Visual Mini Pipeline Nodes */}
+        <div className="flex items-center justify-between bg-[#14151C] px-2.5 py-1.5 rounded border border-[#252836]">
+          {/* Node 1: 11kV Substation */}
+          <div className="text-center">
+            <div className="w-6 h-6 mx-auto rounded bg-[#D4AF37]/20 border border-[#D4AF37]/50 flex items-center justify-center text-[#F5D061]">
+              <Zap className="w-3 h-3" />
+            </div>
+            <span className="text-[8px] text-[#A69FB1] mt-0.5 block truncate max-w-[50px]">11kV SUB</span>
+          </div>
+
+          {/* Animated Connecting Vector Beam */}
+          <div className="flex-1 px-1.5 flex items-center justify-center">
+            <div className="relative w-full h-1 bg-[#252836] rounded-full overflow-hidden">
+              <div
+                className="absolute inset-y-0 w-3 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent animate-pulse"
+                style={{ animationDuration: "1.2s", left: "25%" }}
+              />
+            </div>
+          </div>
+
+          {/* Node 2: Feeder F1 */}
+          <div className="text-center">
+            <div className="w-6 h-6 mx-auto rounded bg-sky-500/20 border border-sky-500/50 flex items-center justify-center text-sky-300">
+              <Network className="w-3 h-3" />
+            </div>
+            <span className="text-[8px] text-[#A69FB1] mt-0.5 block truncate max-w-[50px]">FEEDER F1</span>
+          </div>
+
+          {/* Animated Connecting Vector Beam */}
+          <div className="flex-1 px-1.5 flex items-center justify-center">
+            <div className="relative w-full h-1 bg-[#252836] rounded-full overflow-hidden">
+              <div
+                className="absolute inset-y-0 w-3 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-pulse"
+                style={{ animationDuration: "1.2s", left: "65%" }}
+              />
+            </div>
+          </div>
+
+          {/* Node 3: Target Room/Entity */}
+          <div className="text-center">
+            <div className="w-6 h-6 mx-auto rounded bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-300">
+              <Cpu className="w-3 h-3" />
+            </div>
+            <span className="text-[8px] text-white font-bold mt-0.5 block truncate max-w-[60px]">
+              {entity.entity_id}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* 2. Key Metrics Card in Charcoal + Gold */}
-      <div className="p-4 bg-[#191A22] border-b border-[#272935] grid grid-cols-2 gap-3">
+      <div className="p-3 bg-[#191A22] border-b border-[#272935] grid grid-cols-2 gap-2.5">
         {/* Health Score Meter */}
-        <div className="bg-[#14151C] p-2.5 rounded border border-[#2D303E]">
-          <div className="flex items-center justify-between text-[10px] text-[#9D8EB5] font-mono">
-            <span>RESILIENCE / HEALTH</span>
+        <div className="bg-[#14151C] p-2 rounded border border-[#2D303E]">
+          <div className="flex items-center justify-between text-[9px] text-[#9D8EB5] font-mono">
+            <span>RESILIENCE</span>
             <Activity className="w-3 h-3 text-[#D4AF37]" />
           </div>
-          <div className="text-lg font-mono font-bold text-[#F5D061] mt-1">
+          <div className="text-base font-mono font-bold text-[#F5D061] mt-0.5">
             {healthScore.toFixed(1)}%
           </div>
-          <div className="w-full h-1.5 bg-[#252836] rounded-full mt-1.5 overflow-hidden">
+          <div className="w-full h-1.5 bg-[#252836] rounded-full mt-1 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
                 healthScore > 80 ? "bg-[#D4AF37]" : healthScore > 40 ? "bg-[#E5A83B]" : "bg-[#E05D5D]"
@@ -161,16 +223,16 @@ export function EntityInspector({
           </div>
         </div>
 
-        {/* Criticality Rating in Dusty Purple + Gold */}
-        <div className="bg-[#14151C] p-2.5 rounded border border-[#2D303E]">
-          <div className="flex items-center justify-between text-[10px] text-[#9D8EB5] font-mono">
+        {/* Criticality Rating */}
+        <div className="bg-[#14151C] p-2 rounded border border-[#2D303E]">
+          <div className="flex items-center justify-between text-[9px] text-[#9D8EB5] font-mono">
             <span>CRITICALITY</span>
             <AlertOctagon className="w-3 h-3 text-[#E6C45E]" />
           </div>
-          <div className="text-xs font-mono font-bold text-[#F0EDF5] mt-2 truncate">
+          <div className="text-xs font-mono font-bold text-[#F0EDF5] mt-1 truncate">
             {entity.criticality}
           </div>
-          <div className="text-[9px] text-[#D4AF37] mt-1 font-mono font-bold">TIER-1 CORE ASSET</div>
+          <div className="text-[8px] text-[#D4AF37] mt-0.5 font-mono font-bold">TIER-1 ASSET</div>
         </div>
       </div>
 
@@ -228,20 +290,20 @@ export function EntityInspector({
                   No active telemetry streams detected for this entity.
                 </div>
               ) : (
-                telemetry.map((t, idx) => (
+                telemetry.slice(0, 3).map((t, idx) => (
                   <div
                     key={t.event_id || idx}
-                    className="bg-[#1A1C24] p-2 rounded border border-[#2E3140] flex items-center justify-between font-mono"
+                    className="bg-[#1A1C24] p-1.5 rounded border border-[#2E3140] flex items-center justify-between font-mono"
                   >
                     <div>
-                      <div className="text-[#F0EDF5] font-semibold text-[11px]">{t.metric_name}</div>
-                      <div className="flex items-center space-x-2 text-[9px] text-[#8A8594] mt-0.5">
-                        <Clock className="w-2.5 h-2.5 text-[#9D8EB5]" />
+                      <div className="text-[#F0EDF5] font-semibold text-[10px]">{t.metric_name}</div>
+                      <div className="flex items-center space-x-1.5 text-[8px] text-[#8A8594] mt-0.5">
+                        <Clock className="w-2 h-2 text-[#9D8EB5]" />
                         <span>{new Date(t.timestamp).toLocaleTimeString()}</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[#F5D061] font-bold text-xs">
+                      <div className="text-[#F5D061] font-bold text-[11px]">
                         {t.value.toFixed(1)} {t.unit}
                       </div>
                       <span
